@@ -1,3 +1,0 @@
-# API Reference
-
-## HAL Functions
