@@ -1,0 +1,98 @@
+/*
+ * Copyright (c) 2026, Realtek Semiconductor Corporation
+ *
+ * SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+ */
+
+/*============================================================================*
+ *                              Header Files
+ *============================================================================*/
+#include <os_sched.h>
+#include <trace.h>
+#include <app_peripheral_task.h>
+#include <app_peripheral_gap.h>
+#include "app_peripheral_service.h"
+#include "app_peripheral_client.h"
+#include "bt_bond_api.h"
+#if F_DLPS_EN
+#include "pm.h"
+#endif
+
+/** @defgroup PERIPH_DEMO_MAIN Peripheral Main
+    * @brief Main file to initialize hardware and BT stack and start task scheduling
+    * @{
+    */
+
+/*============================================================================*
+ *                              Functions
+ *============================================================================*/
+
+/**
+ * @brief board_init
+ * Contains the initialization of pinmux settings and pad settings.
+ * @note All the pinmux settings and pad settings shall be initiated in this function,
+ * but if legacy driver is used, the initialization of pinmux setting and pad setting
+ * should be performed with the IO initializing.
+ * @return   void
+ */
+void board_init(void)
+{
+
+}
+
+/**
+ * @brief driver_init
+ * Contains the initialization of peripherals.
+ * @note Both new architecture driver and legacy driver initialization method can be used
+ * @return void
+ */
+void driver_init(void)
+{
+
+}
+
+/**
+ * @brief pwr_mgr_init
+ * Contains the power mode settings.
+ * @return void
+ */
+void pwr_mgr_init(void)
+{
+#if F_DLPS_EN
+    bt_power_mode_set(BTPOWER_DEEP_SLEEP);
+    power_mode_set(POWER_DLPS_MODE);
+#endif
+}
+
+/**
+ * @brief task_init
+ * Contains the initialization of all tasks.
+ * @note There is only one task in BLE Peripheral APP, thus only one APP task is init here
+ * @return void
+ */
+void task_init(void)
+{
+    app_task_init();
+}
+
+/**
+ * @brief main
+ * Entry Point of APP code.
+ * @return int (To avoid compile warning)
+ */
+int main(void)
+{
+    board_init();
+    bt_bond_init();
+    le_gap_init(APP_MAX_LINKS);
+    gap_lib_init();
+    app_peripheral_gap_init();
+    app_peripheral_service_init();
+    app_peripheral_client_init();
+    pwr_mgr_init();
+    task_init();
+    os_sched_start();
+
+    return 0;
+}
+/** @} */ /* End of group PERIPH_DEMO_MAIN */

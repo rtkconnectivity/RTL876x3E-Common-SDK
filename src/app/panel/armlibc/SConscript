@@ -1,0 +1,23 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+
+from building import *
+
+cwd = GetCurrentDir()
+
+# add the general drivers.
+src = Split("""
+""")
+
+src += ['stubs.c']
+
+
+CPPPATH = [cwd]
+
+group = DefineGroup('lib', src, depend = [''], CPPPATH = CPPPATH)
+
+
+Return('group')

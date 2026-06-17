@@ -1,0 +1,348 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+menuconfig REALTEK_HAL
+   bool "hal config"
+   depends on SOC_SERIES_RTL8763E
+
+if REALTEK_HAL
+config REALTEK_HAL_TARGET_NAME
+    string
+    default "libhal_utils"
+endif
+
+menuconfig REALTEK_BLE_MGR
+   bool "ble mgr"
+
+if REALTEK_BLE_MGR
+
+choice REALTEK_BLE_MGR_TARGET
+    prompt "target"
+    default REALTEK_BLE_MGR_TARGET_DEFAULT
+
+config  REALTEK_BLE_MGR_TARGET_DEFAULT
+    bool "default"
+
+    help
+      build ble manager library target name for default
+
+if REALTEK_BLE_MGR_TARGET_DEFAULT
+config REALTEK_BLE_MGR_TARGET_NAME
+    string
+	default "libble_mgr_default"
+endif
+
+config  REALTEK_BLE_MGR_TARGET_ALL
+    bool "all"
+    help
+      build le manager library target name for all
+
+if REALTEK_BLE_MGR_TARGET_ALL
+config REALTEK_BLE_MGR_TARGET_NAME
+    string
+    default "libble_mgr_all"
+endif
+
+config  REALTEK_BLE_MGR_TARGET_DONGLE
+    bool "dongle"
+    help
+      build le manager library target name for dongle
+
+if REALTEK_BLE_MGR_TARGET_DONGLE
+config REALTEK_BLE_MGR_TARGET_NAME
+    string
+    default "libble_mgr_dongle"
+endif
+
+endchoice
+
+endif
+
+menuconfig REALTEK_BLE_AUDIO
+   bool "ble audio"
+   
+if REALTEK_BLE_AUDIO
+
+choice REALTEK_BLE_AUDIO_TARGET
+    prompt "target"
+    default REALTEK_BLE_AUDIO_TARGET_DEFAULT
+
+config  REALTEK_BLE_AUDIO_TARGET_DEFAULT
+    bool "default"
+
+    help
+      build le audio library target name for default
+
+if REALTEK_BLE_AUDIO_TARGET_DEFAULT
+config REALTEK_BLE_AUDIO_TARGET_NAME
+    string
+    default "libleaudio"
+endif
+
+config  REALTEK_BLE_AUDIO_TARGET_DONGLE
+    bool "dongle"
+    help
+      build le audio library target name for dongle
+
+if REALTEK_BLE_AUDIO_TARGET_DONGLE
+config REALTEK_BLE_AUDIO_TARGET_NAME
+    string
+    default "libleaudio_dongle"
+endif
+
+endchoice
+
+endif
+
+menuconfig REALTEK_DUAL_AUDIO_EFFECT
+   bool "dual audio effect"
+   help
+      use dual audio effect
+
+if REALTEK_DUAL_AUDIO_EFFECT
+
+config REALTEK_DUAL_AUDIO_EFFECT_TARGET_NAME
+   string
+   default "libdual_audio_effect"
+
+endif
+
+menuconfig REALTEK_ENGAGE
+   bool "engage"
+   help
+      use engage function
+
+if REALTEK_ENGAGE
+config REALTEK_ENGAGE_TARGET_NAME
+   string
+   default "libengage"
+endif
+
+menuconfig REALTEK_FILESYSTEM
+   bool "filesystem"
+   help
+      use filesystem function
+
+if REALTEK_FILESYSTEM
+
+config REALTEK_FILESYSTEM_TARGET_NAME
+   string
+   default "libfilesystem"
+
+endif
+
+menuconfig REALTEK_FRAMEWORK
+   bool "framework"
+   help
+     framework library
+
+if REALTEK_FRAMEWORK
+
+choice REALTEK_FRAMEWORK_TARGET
+    prompt "target"
+	default REALTEK_FRAMEWORK_TARGET_DEFAULT
+
+config  REALTEK_FRAMEWORK_TARGET_DEFAULT
+    bool "default"
+
+    help
+      build framework library target name for default
+
+if REALTEK_FRAMEWORK_TARGET_DEFAULT
+config REALTEK_FRAMEWORK_TARGET_NAME
+    string
+    default "libframework_default"
+endif
+
+config  REALTEK_FRAMEWORK_TARGET_ALL
+    bool "all"
+    help
+      build framework library target name for all
+
+if REALTEK_FRAMEWORK_TARGET_ALL
+config REALTEK_FRAMEWORK_TARGET_NAME
+    string
+    default "libframework_all"
+endif
+
+config  REALTEK_FRAMEWORK_TARGET_DURIAN
+    bool "durian"
+    help
+      build framework library target name for durian
+
+if REALTEK_FRAMEWORK_TARGET_DURIAN
+config REALTEK_FRAMEWORK_TARGET_NAME
+    string
+    default "libframework_durian"
+endif
+
+config  REALTEK_FRAMEWORK_TARGET_STEREO
+    bool "stereo"
+    help
+      build framework library target name for stereo
+
+if REALTEK_FRAMEWORK_TARGET_STEREO
+config REALTEK_FRAMEWORK_TARGET_NAME
+    string
+    default "libframework_stereo"
+endif
+
+config  REALTEK_FRAMEWORK_TARGET_WATCH
+    bool "watch"
+    help
+      build framework library target name for watch
+
+if REALTEK_FRAMEWORK_TARGET_WATCH
+config REALTEK_FRAMEWORK_TARGET_NAME
+    string
+    default "libframework_watch"
+endif
+
+endchoice
+
+endif
+
+menuconfig REALTEK_CONSOLE
+   bool "console"
+   help
+     framework console
+
+if REALTEK_CONSOLE
+
+config REALTEK_CONSOLE_TARGET_NAME
+   string
+   default "libconsole"
+
+endif
+
+menuconfig REALTEK_REMOTE
+   bool "remote"
+   help
+     framework remote
+
+if REALTEK_REMOTE
+
+config REALTEK_REMOTE_TARGET_NAME
+   string
+   default "libremote"
+
+endif
+
+menuconfig REALTEK_SYSM
+   bool "sysm"
+   help
+     framework sysm
+
+if REALTEK_SYSM
+
+config REALTEK_SYSM_TARGET_NAME
+   string
+   default "libsysm"
+
+endif
+
+menuconfig REALTEK_GAMING_BT
+   bool "gaming bt"
+   help
+      gaming bt lib
+
+if REALTEK_GAMING_BT
+
+config REALTEK_GAMING_BT_TARGET_NAME
+   string
+   default "libgaming_bt"
+
+endif
+
+
+menuconfig REALTEK_GFPS
+   bool "gfps"
+   help
+      gfps lib
+
+if REALTEK_GFPS
+
+config REALTEK_GFPS_TARGET_NAME
+   string
+   default "libgfps"
+
+endif
+
+menuconfig REALTEK_SD
+   bool "sd"
+   help
+      use sd function
+
+if REALTEK_SD
+
+config REALTEK_SD_TARGET_NAME
+   string
+   default "libsd"
+
+endif
+
+menuconfig REALTEK_TEAMS
+   bool "teams"
+   help
+      use teams function
+
+if REALTEK_TEAMS
+
+config REALTEK_TEAMS_TARGET_NAME
+   string
+   default "libteams"
+
+endif
+
+menuconfig REALTEK_USB
+   bool "usb"
+   help
+      use usb function
+
+if REALTEK_USB
+
+config REALTEK_USB_TARGET_NAME
+   string
+   default "libusb"
+
+endif
+
+menuconfig REALTEK_USB_HAL
+   bool "usb hal"
+   help
+      use usb hal
+
+if REALTEK_USB_HAL
+
+config REALTEK_USB_HAL_TARGET_NAME
+   string
+   default "libusb_hal"
+
+endif
+
+menuconfig REALTEK_XIAOWEI
+   bool "xiaowei"
+   help
+      use xiaowei function
+if REALTEK_XIAOWEI
+
+config REALTEK_XIAOWEI_TARGET_NAME
+   string
+   default "libxiaowei"
+
+endif
+
+menuconfig REALTEK_MBEDTLS
+   bool "MBEDTLS"
+   help
+      use MBEDTLS function
+
+if REALTEK_MBEDTLS
+
+config REALTEK_MBEDTLS_TARGET_NAME
+   string
+   default "MBEDTLS"
+
+endif

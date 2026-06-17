@@ -1,0 +1,227 @@
+/*
+ * Copyright (c) 2026, Realtek Semiconductor Corporation
+ *
+ * SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+ */
+
+#ifndef PROFILE_SERVER_DEF_H
+#define PROFILE_SERVER_DEF_H
+
+#ifdef  __cplusplus
+extern "C" {
+#endif      /* __cplusplus */
+
+/*============================================================================*
+ *                        Header Files
+ *============================================================================*/
+/** @defgroup GATT_SERVER_API GATT Server API
+  * @brief GATT Server API
+  * @{
+  */
+/** @defgroup GATT_SERVER_COMMON_API GATT Server Common API
+  * @brief GATT Server Common API
+  * @{
+  */
+/*============================================================================*
+ *                         Macros
+ *============================================================================*/
+/** @defgroup GATT_SERVER_COMMON_Exported_Macros GATT Server Common Exported Macros
+  * @brief
+  * @{
+  */
+
+/** @defgroup General_Service_ID General Service ID
+  * @brief Service ID for general profile events.
+  * @{
+  */
+#define SERVICE_PROFILE_GENERAL_ID  0xFF
+/** @} */
+
+/** End of GATT_SERVER_COMMON_Exported_Macros
+  * @}
+  */
+
+
+/*============================================================================*
+ *                         Types
+ *============================================================================*/
+/** @defgroup GATT_SERVER_COMMON_Exported_Types GATT Server Common Exported Types
+  * @brief
+  * @{
+  */
+
+typedef uint8_t T_SERVER_ID;    //!< Service ID.
+
+/** @brief  GATT write data type*/
+typedef enum
+{
+    WRITE_REQUEST,                      /**< Write request. */
+    WRITE_WITHOUT_RESPONSE,             /**< Write without response. */
+    WRITE_SIGNED_WITHOUT_RESPONSE,      /**< Signed write without response. */
+    WRITE_LONG,                         /**< Write long request. */
+} T_WRITE_TYPE;
+
+/** @brief  GATT PDU type*/
+typedef enum
+{
+    GATT_PDU_TYPE_ANY           = 0x00, /**<  Any PDU type. */
+    GATT_PDU_TYPE_NOTIFICATION  = 0x01, /**<  Notification PDU type. */
+    GATT_PDU_TYPE_INDICATION    = 0x02  /**<  Indication PDU type. */
+} T_GATT_PDU_TYPE;
+
+/** @brief Event type to inform APP*/
+typedef enum
+{
+    SERVICE_CALLBACK_TYPE_INDIFICATION_NOTIFICATION = 1,    /**< CCCD update event. */
+    SERVICE_CALLBACK_TYPE_READ_CHAR_VALUE = 2,              /**< Client read event. */
+    SERVICE_CALLBACK_TYPE_WRITE_CHAR_VALUE = 3,             /**< Client write event. */
+} T_SERVICE_CALLBACK_TYPE;
+
+/** @defgroup GATT_SERVER_COMMON_CB_DATA Server Common Callback Data
+  * @brief Data for profile to inform application.
+  * @{
+  */
+/** @brief Event ID */
+typedef enum
+{
+    PROFILE_EVT_SRV_REG_COMPLETE,              /**< Services register complete event
+    when application calls server_add_service before calling @ref gap_start_bt_stack. */
+    PROFILE_EVT_SEND_DATA_COMPLETE,            /**< Notification or indication data send complete event. */
+    PROFILE_EVT_SRV_REG_AFTER_INIT_COMPLETE,   /**< Services register complete event
+    when application calls server_add_service after receiving @ref GAP_INIT_STATE_STACK_READY. */
+    PROFILE_EVT_SRV_CLEAR_AFTER_INIT_COMPLETE, /**< Services clear complete event
+    when application calls server_clear_service after receiving @ref GAP_INIT_STATE_STACK_READY. */
+    PROFILE_EVT_SERVICE_CHANGE_STATE,          /**< Service change state event. */
+} T_SERVER_CB_TYPE;
+
+/** @brief  The callback data of @ref PROFILE_EVT_SRV_REG_COMPLETE. */
+typedef enum
+{
+    GATT_SERVER_SUCCESS,  /**< Success. */
+    GATT_SERVER_FAIL      /**< Fail. */
+} T_SERVER_RESULT;
+
+/** @brief  The callback data of @ref PROFILE_EVT_SRV_REG_AFTER_INIT_COMPLETE. */
+typedef struct
+{
+    T_SERVER_RESULT result;
+    T_SERVER_ID     service_id;
+    uint16_t        cause;
+} T_SERVER_REG_AFTER_INIT_RESULT;
+
+/** @brief  The callback data of @ref PROFILE_EVT_SRV_CLEAR_AFTER_INIT_COMPLETE */
+typedef struct
+{
+    uint16_t        cause; /**< Cause. */
+    uint16_t        svc_changed_char_cccd_handle; /**< 0x0000: Invalid handle. */
+} T_SERVER_CLEAR_SERVICE_AFTER_INIT_RESULT;
+
+/** @brief  The callback data of @ref PROFILE_EVT_SERVICE_CHANGE_STATE. */
+typedef struct
+{
+    uint8_t service_change;             /**< Whether service is changed.
+                                          *  - 0:  Service is not changed.
+                                          *  - 1:  Service is changed. */
+    uint8_t service_change_state;       /**< @ref GATT_SERVER_SERVICE_CHANGE_STATE_BIT_Def. */
+    uint16_t conn_handle;               /**< Ignore if service_change is 1. */
+} T_SERVER_SERVICE_CHANGE_STATE;
+
+/** @} End of GATT_SERVER_COMMON_CB_DATA */
+
+/** End of GATT_SERVER_COMMON_Exported_Types
+  * @}
+  */
+
+/*============================================================================*
+ *                         Functions
+ *============================================================================*/
+/** @defgroup GATT_SERVER_COMMON_Exported_Functions GATT Server Common Exported Functions
+  * @brief
+  * @{
+  */
+
+/**
+ * @brief Initialize parameters of GATT Server.
+ *
+ * @param[in] service_num Set the number of services that need to register.
+ *
+ * <b>Example usage</b>
+ * \code{.c}
+    void app_le_profile_init(void)
+    {
+        server_init(service_num);
+    }
+ * \endcode
+ */
+void server_init(uint8_t service_num);
+
+/**
+ * @brief Register built-in services including GAP and GATT services.
+ *
+ * If the application does not need to register GAP and GATT services,
+ * the application shall call @ref server_builtin_service_reg (false) before @ref server_init.
+ *
+ * @param[in] reg Whether to register built-in services. The default value is true.
+ *
+ * <b>Example usage</b>
+ * \code{.c}
+    void app_le_profile_init(void)
+    {
+        server_builtin_service_reg(false);
+        server_init(service_num);
+        simp_srv_id = simp_ble_service_add_service(app_profile_callback);
+        server_register_app_cb(app_profile_callback);
+    }
+ * \endcode
+ */
+void server_builtin_service_reg(bool reg);
+
+/**
+ * @brief Get the start handle of the service.
+ *
+ * @param[in] service_id Service ID.
+ * @return Start handle.
+ * @retval 0 Operation failure.
+ * @retval Others Start handle.
+ *
+ * <b>Example usage</b>
+ * \code{.c}
+    void test(void)
+    {
+        uint16_t start_handle = server_get_start_handle(service_id);
+    }
+ * \endcode
+ */
+uint16_t server_get_start_handle(T_SERVER_ID service_id);
+
+/**
+ * @brief Configure the server interface.
+ *
+ * @param[in] use_ext Whether to use the extension API. The default value is false.
+ *                    - true: Use the API in @ref GATT_SERVER_EXT_API.
+ *                    - false: Use the API in @ref GATT_SERVER_LEGACY_API.
+ * @return Operation result.
+ * @retval true  Operation success.
+ * @retval false Operation failure.
+ *
+ * <b>Example usage</b>
+ * \code{.c}
+    void test(void)
+    {
+        bool ret = server_cfg_use_ext_api(true);
+    }
+ * \endcode
+ */
+bool server_cfg_use_ext_api(bool use_ext);
+
+/** @} End of GATT_SERVER_COMMON_Exported_Functions */
+
+/** @} End of GATT_SERVER_COMMON_API */
+
+/** @} End of GATT_SERVER_API */
+
+#ifdef  __cplusplus
+}
+#endif      /*  __cplusplus */
+
+#endif /* PROFILE_SERVER_DEF_H */

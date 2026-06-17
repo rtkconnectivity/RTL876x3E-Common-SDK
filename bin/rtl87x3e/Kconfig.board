@@ -1,0 +1,124 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+if SOC_SERIES_RTL8763E
+choice SOC_RTL8763E_PARTNUMBER
+    prompt "select RTL8763E partnumber"
+
+config SOC_RTL8763EAU
+    bool "RTL8763EAU"
+
+config SOC_RTL8763ESE
+    bool "RTL8763ESE"
+
+config SOC_RTL8763EFL
+    bool "RTL8763EFL"
+
+config SOC_RTL8763ESL
+    bool "RTL8763ESL"
+
+config SOC_RTL8763EHA
+    bool "RTL8763EHA"
+
+config SOC_RTL8763EF
+    bool "RTL8763EF"
+
+config SOC_RTL8763EW
+    bool "RTL8763EW"
+
+config SOC_RTL8763EW_VC
+    bool "RTL8763EW-VC"
+
+config SOC_RTL8763EW_VP
+    bool "RTL8763EW-VP"
+
+config SOC_RTL8763EWE
+    bool "RTL8763EWE"
+
+config SOC_RTL8763EWE_VP
+    bool "RTL8763EWE-VP"
+endchoice
+
+
+config REALTEK_TARGET_RTL8763EAU
+    int
+    default 1 if SOC_RTL8763EAU
+    default 0
+    help
+       TARGET_RTL8763EAU
+
+config REALTEK_TARGET_RTL8763ESE
+    int
+    default 1 if SOC_RTL8763ESE
+    default 0
+    help
+      TARGET_RTL8763ESE
+
+config REALTEK_TARGET_RTL8763EFL
+    int
+    default 1 if SOC_RTL8763EFL
+    default 0
+    help
+      TARGET_RTL8763EFL
+
+config REALTEK_TARGET_RTL8763ESL
+    int
+    default 1 if SOC_RTL8763ESL
+    default 0
+    help
+      TARGET_RTL8763ESL
+
+config REALTEK_TARGET_RTL8763EHA
+    int
+    default 1 if SOC_RTL8763EHA
+    default 0
+    help
+      TARGET_RTL8763EHA
+
+config REALTEK_TARGET_RTL8763EF
+    int
+    default 1 if SOC_RTL8763EF
+    default 0
+    help
+      TARGET_RTL8763EF
+
+config REALTEK_TARGET_RTL8763EW
+    int
+    default 1 if SOC_RTL8763EW
+    default 0
+    help
+      TARGET_RTL8763EW
+
+config REALTEK_TARGET_RTL8763EW_VC
+    int
+    default 1 if SOC_RTL8763EW_VC
+    default 0
+    help
+      TARGET_RTL8763EW_VC
+
+config REALTEK_TARGET_RTL8763EW_VP
+    int
+    default 1 if SOC_RTL8763EW_VP
+    default 0
+    help
+      TARGET_RTL8763EW_VP
+
+config REALTEK_TARGET_RTL8763EWE
+    int
+    default 1 if SOC_RTL8763EWE
+    default 0
+    help
+      TARGET_RTL8763EWE
+
+config REALTEK_TARGET_RTL8763EWE_VP
+    int
+    default 1 if SOC_RTL8763EWE_VP
+    default 0
+    help
+      TARGET_RTL8763EWE_VP
+
+rsource "flash_map_config/Kconfig"
+
+endif

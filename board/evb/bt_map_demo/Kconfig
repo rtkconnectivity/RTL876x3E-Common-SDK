@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+
+mainmenu "realtek mapdemo mainmenu"
+
+menu "mapdemo"
+rsource "../../../src/Kconfig"
+endmenu
+
+config REALTEK_BT_MAP_DEMO_APP
+   bool 
+   default y
+
+rsource "../../../Kconfig"

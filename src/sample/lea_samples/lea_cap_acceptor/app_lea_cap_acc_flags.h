@@ -1,0 +1,64 @@
+/*
+ * Copyright (c) 2026, Realtek Semiconductor Corporation
+ *
+ * SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+ */
+
+#ifndef _APP_LEA_CAP_ACC_FLAGS_H_
+#define _APP_LEA_CAP_ACC_FLAGS_H_
+
+/*============================================================================*
+ *                              Header Files
+ *============================================================================*/
+#include "ble_audio_flags.h"
+
+/** @defgroup  LEA_CAP_ACC_APP_Config CAP Acceptor APP Configuration
+    * @brief This file is used to config app functions.
+    * @{
+    */
+/*============================================================================*
+ *                              Constants
+ *============================================================================*/
+
+/**
+ * @brief Config APP LE link number
+ *
+ */
+#define APP_MAX_BLE_LINK_NUM 1
+
+/** @brief  Config EATT: 0-Disable EATT, 1-Enable EATT */
+#define APP_LEA_EATT_SUPPORT 0
+
+#define GATTC_TBL_STORAGE_SUPPORT 1
+
+#define CAP_ROLE                 CAP_ACCEPTOR_ROLE
+
+//CAP role component
+#define BAP_UNICAST_CLIENT       (LE_AUDIO_UNICAST_CLIENT_ROLE && 0)
+#define BAP_UNICAST_SERVER       (LE_AUDIO_UNICAST_SERVER_ROLE && 1)
+#define BAP_BROADCAST_SOURCE     (LE_AUDIO_BROADCAST_SOURCE_ROLE && 0)
+#define BAP_BROADCAST_SINK       (LE_AUDIO_BROADCAST_SINK_ROLE && 1)
+#define BAP_BROADCAST_ASSISTANT  (LE_AUDIO_BROADCAST_ASSISTANT_ROLE && 0)
+#define BAP_SCAN_DELEGATOR       (LE_AUDIO_SCAN_DELEGATOR_ROLE && 1)
+#define VCP_VOLUME_CONTROLLER    (LE_AUDIO_VCS_CLIENT_SUPPORT && 0)
+#define VCP_VOLUME_RENDERER      (LE_AUDIO_VCS_SUPPORT && 1)
+#define MICP_MIC_CONTROLLER      (LE_AUDIO_MICS_CLIENT_SUPPORT && 0)
+#define MICP_MIC_DEVICE          (LE_AUDIO_MICS_SUPPORT && 1)
+#define CCP_CALL_CONTROL_SERVER  (LE_AUDIO_CCP_SERVER_SUPPORT && 0)
+#define CCP_CALL_CONTROL_CLIENT  (LE_AUDIO_CCP_CLIENT_SUPPORT && 1)
+#define MCP_MEDIA_CONTROL_SERVER (LE_AUDIO_MCP_SERVER_SUPPORT && 0)
+#define MCP_MEDIA_CONTROL_CLIENT (LE_AUDIO_MCP_CLIENT_SUPPORT && 1)
+#define CSIP_SET_COORDINATOR     (LE_AUDIO_CSIS_CLIENT_SUPPORT && 0)
+#define CSIP_SET_MEMBER          (LE_AUDIO_CSIS_SUPPORT && 1)
+
+//Optional profile role supported
+#define APP_LEA_VOCS_SUPPORT          (VCP_VOLUME_RENDERER && LE_AUDIO_VOCS_SUPPORT && 1)
+#define APP_LEA_AICS_FOR_VCS_SUPPORT  (VCP_VOLUME_RENDERER && LE_AUDIO_AICS_SUPPORT && 1)
+#define APP_LEA_AICS_FOR_MICS_SUPPORT (MICP_MIC_DEVICE && LE_AUDIO_AICS_SUPPORT && 1)
+
+#define CCP_CALL_CONTROL_CLIENT_GTBS_ONLY (MCP_MEDIA_CONTROL_CLIENT && 1)
+
+#define APP_LEA_INPUT_AUDIO_DATA_TEST (BAP_UNICAST_CLIENT || BAP_UNICAST_SERVER || BAP_BROADCAST_SOURCE) /**< Input (Host to Controller).*/
+
+/** @} */ /* End of group LEA_CAP_ACC_APP_Config */
+#endif

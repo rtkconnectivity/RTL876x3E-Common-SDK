@@ -1,0 +1,11 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+if REALTEK_TEMPLATE
+
+config REALTEK_TEMPLATE_TARGET_NAME
+    string
+    default "template"
+endif

@@ -1,0 +1,972 @@
+#if (CONFIG_SOC_SERIES_RTL87X3G==1)
+#include "mbedtls_port.h"
+#include "mbedtls_config.h"
+#include "platform.h"
+#include <stdio.h>
+#include "trace.h"
+#include "entropy_poll.h"
+#include "threading.h"
+#include "ecdsa_alt.h"
+#include "hw_pke_ecc.h"
+#include "ecp.h"
+#include "ecdsa.h"
+#include "string.h"
+#include "ecc_interface.h"
+#include <stdio.h>
+#include <string.h>
+#include "mbedtls/ecdsa.h"
+#include "mbedtls/ecp.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/sha256.h"
+#include "mbedtls/sha512.h"
+#include "mbedtls/error.h"
+
+#define CURVE_P192       0x3
+#define CURVE_P224       0x4
+#define CURVE_P384       0x5
+
+#define CURVE_P192K1       0x7
+#define CURVE_P224K1       0x8
+#define CURVE_P256K1       0x9
+
+#define RET_HW_FAIL             2
+#define RET_BAD_INPUT           3
+#define RET_FEATURE_UNAVAIL     4
+
+#define ECDSA_ALT_DEBUG_ENABLE  0
+
+#if (ECDSA_ALT_DEBUG_ENABLE == 1)
+static void print_mbedtls_error(const char *msg, int ret)
+{
+    char buf[256];
+    mbedtls_strerror(ret, buf, sizeof(buf));
+    DBG_DIRECT("%s: ret=%d (%s)\n", msg, ret, buf);
+}
+
+
+static void mpi_print_hex(const char *name, const mbedtls_mpi *X, size_t bytelen)
+{
+    unsigned char be[80] = {0};
+    if (bytelen > sizeof(be)) { bytelen = sizeof(be); }
+    int ret = mbedtls_mpi_write_binary(X, be, bytelen);
+    if (ret != 0)
+    {
+        print_mbedtls_error("mpi_write_binary", ret);
+        return;
+    }
+    DBG_DIRECT("%s:", name);
+    for (size_t i = 0; i < bytelen; i += 8)
+    {
+        DBG_DIRECT("%02X %02X %02X %02X %02X %02X %02X %02X", be[i], be[i + 1], be[i + 2], be[i + 3],
+                   be[i + 4], be[i + 5], be[i + 6], be[i + 7]);
+    }
+
+}
+#endif
+
+static int map_group_id_to_sel(mbedtls_ecp_group_id id)
+{
+    switch (id)
+    {
+    case MBEDTLS_ECP_DP_SECP192R1: return CURVE_P192;
+    case MBEDTLS_ECP_DP_SECP224R1: return CURVE_P224;
+    case MBEDTLS_ECP_DP_SECP256R1: return CURVE_P256;
+    case MBEDTLS_ECP_DP_SECP384R1: return CURVE_P384;
+    case MBEDTLS_ECP_DP_SECP192K1: return CURVE_P192K1;
+    case MBEDTLS_ECP_DP_SECP224K1: return CURVE_P224K1;
+    case MBEDTLS_ECP_DP_SECP256K1: return CURVE_P256K1;
+    default: return -1;
+    }
+}
+
+static int sel_to_bits_and_bytes(int curve_sel, int *bits, size_t *bytes)
+{
+    switch (curve_sel)
+    {
+    case CURVE_P192:    *bits = 192; *bytes = 24; return 0;
+    case CURVE_P224:    *bits = 224; *bytes = 28; return 0;
+    case CURVE_P256:
+    case CURVE_P256K1:  *bits = 256; *bytes = 32; return 0;
+    case CURVE_P384:    *bits = 384; *bytes = 48; return 0;
+    case CURVE_P192K1:  *bits = 192; *bytes = 24; return 0;
+    case CURVE_P224K1:  *bits = 225; *bytes = 28; return 0;
+    default: return -1;
+    }
+}
+
+
+static void be_to_le(const unsigned char *be, unsigned char *le, size_t len)
+{
+    for (size_t i = 0; i < len; i++)
+    {
+        le[i] = be[len - 1 - i];
+    }
+}
+
+
+static void le_to_be(const unsigned char *le, unsigned char *be, size_t len)
+{
+    for (size_t i = 0; i < len; i++)
+    {
+        be[i] = le[len - 1 - i];
+    }
+}
+
+
+static int mpi_to_le_fixed(const mbedtls_mpi *X, unsigned char *le, size_t len)
+{
+    unsigned char be_buf[64];
+    if (len > sizeof(be_buf))
+    {
+        return RET_BAD_INPUT;
+    }
+
+    memset(be_buf, 0, sizeof(be_buf));
+    int ret = mbedtls_mpi_write_binary(X, be_buf + (sizeof(be_buf) - len), len);
+    if (ret != 0)
+    {
+        return ret;
+    }
+    be_to_le(be_buf + (sizeof(be_buf) - len), le, len);
+    return 0;
+}
+
+
+static int le_fixed_to_mpi(mbedtls_mpi *X, const unsigned char *le, size_t len)
+{
+    unsigned char be_buf[64];
+    if (len > sizeof(be_buf))
+    {
+        return RET_BAD_INPUT;
+    }
+    le_to_be(le, be_buf, len);
+    return mbedtls_mpi_read_binary(X, be_buf, len);
+}
+
+
+static int ecp_point_to_le(const mbedtls_ecp_point *P, unsigned char *x_le, unsigned char *y_le,
+                           size_t len)
+{
+    int ret = mpi_to_le_fixed(&P->MBEDTLS_PRIVATE(X), x_le, len);
+    if (ret != 0)
+    {
+        return ret;
+    }
+    ret = mpi_to_le_fixed(&P->MBEDTLS_PRIVATE(Y), y_le, len);
+    return ret;
+}
+
+
+static int le_to_ecp_point(mbedtls_ecp_point *P, const unsigned char *x_le,
+                           const unsigned char *y_le, size_t len)
+{
+    int ret = le_fixed_to_mpi(&P->MBEDTLS_PRIVATE(X), x_le, len);
+    if (ret != 0)
+    {
+        return ret;
+    }
+    ret = le_fixed_to_mpi(&P->MBEDTLS_PRIVATE(Y), y_le, len);
+    if (ret != 0)
+    {
+        return ret;
+    }
+    return mbedtls_mpi_lset(&P->MBEDTLS_PRIVATE(Z), 1);
+}
+
+
+static int hw_curve_init(ECC_GROUP *grp, int curve_sel, int bits)
+{
+    memset(grp, 0, sizeof(*grp));
+//    grp->pbits = (uint32_t)bits;
+//    grp->nbits = (uint32_t)bits;
+
+    hw_pke_ecc_curve_init(grp, curve_sel);
+    return 0;
+}
+
+
+int mbedtls_ecdsa_genkey(mbedtls_ecdsa_context *ctx,
+                         mbedtls_ecp_group_id gid,
+                         int (*f_rng)(void *, unsigned char *, size_t),
+                         void *p_rng)
+{
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Enter function, gid=%d", gid);
+    (void) f_rng;
+    (void) p_rng;
+
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling map_group_id_to_sel");
+    int curve_sel = map_group_id_to_sel(gid);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] curve_sel=%d", curve_sel);
+    if (curve_sel < 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] Invalid curve_sel, return RET_FEATURE_UNAVAIL");
+        return RET_FEATURE_UNAVAIL;
+    }
+
+    int bits = 0;
+    size_t bytelen = 0;
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling sel_to_bits_and_bytes");
+    if (sel_to_bits_and_bytes(curve_sel, &bits, &bytelen) != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] sel_to_bits_and_bytes failed, return RET_FEATURE_UNAVAIL");
+        return RET_FEATURE_UNAVAIL;
+    }
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] bits=%d, bytelen=%d", bits, bytelen);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling mbedtls_ecp_group_load with gid=%d", gid);
+
+    // 先测试曲线是否可用
+    const mbedtls_ecp_curve_info *curve_info = mbedtls_ecp_curve_info_from_grp_id(gid);
+    if (curve_info == NULL) {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] Curve info not found for gid=%d", gid);
+        return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Curve info: name=%s, bit_size=%d", 
+            curve_info->name, curve_info->bit_size);
+
+int ret = mbedtls_ecp_group_load(&ctx->MBEDTLS_PRIVATE(grp), gid);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling mbedtls_ecp_group_load");
+    int ret = mbedtls_ecp_group_load(&ctx->MBEDTLS_PRIVATE(grp), gid);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] mbedtls_ecp_group_load ret=%d", ret);
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] mbedtls_ecp_group_load failed, return ret=%d", ret);
+        return ret;
+    }
+
+    ECC_GROUP grp_hw;
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling hw_curve_init");
+    if (hw_curve_init(&grp_hw, curve_sel, bits) != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] hw_curve_init failed, return RET_HW_FAIL");
+        return RET_HW_FAIL;
+    }
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] hw_curve_init success");
+
+    ECC_OPERAND d_hw;
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Initializing d_hw");
+    memset(&d_hw, 0, sizeof(d_hw));
+    d_hw.bit_len = (uint32_t)((ECC_GROUP *)&grp_hw)->nbits;
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] d_hw.bit_len=%d", d_hw.bit_len);
+
+    ECC_POINT Q_hw;
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Initializing Q_hw");
+    memset(&Q_hw, 0, sizeof(Q_hw));
+
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling hw_ecc_gen_keypair");
+    if (!hw_ecc_gen_keypair(&grp_hw, &d_hw, &Q_hw))
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] hw_ecc_gen_keypair failed, return RET_HW_FAIL");
+        return RET_HW_FAIL;
+    }
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] hw_ecc_gen_keypair success");
+#if (ECDSA_ALT_DEBUG_ENABLE== 1)
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_genkey  d %b", TRACE_BINARY(bytelen, d_hw.input));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_genkey  Qx %b", TRACE_BINARY(bytelen, Q_hw.x));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_genkey  Qy %b", TRACE_BINARY(bytelen, Q_hw.y));
+#endif
+
+    //  big eddien to little eddien
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Converting d_hw to mpi");
+    ret = le_fixed_to_mpi(&ctx->MBEDTLS_PRIVATE(d), d_hw.input, bytelen);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] le_fixed_to_mpi for d ret=%d", ret);
+
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] le_fixed_to_mpi for d failed, return ret=%d", ret);
+        return ret;
+    }
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Converting Q_hw to ecp_point");
+    ret = le_to_ecp_point(&ctx->MBEDTLS_PRIVATE(Q),
+                          Q_hw.x, Q_hw.y, bytelen);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] le_to_ecp_point ret=%d", ret);
+
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] le_to_ecp_point failed, return ret=%d", ret);
+        return ret;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Setting Q.Z to 1");
+    ret = mbedtls_mpi_lset(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 1);
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] mbedtls_mpi_lset ret=%d", ret);
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] mbedtls_mpi_lset failed, return ret=%d", ret);
+        return ret;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Validating Q coordinates");
+    if (mbedtls_mpi_cmp_int(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), 0) < 0 ||
+        mbedtls_mpi_cmp_int(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), 0) < 0 ||
+        mbedtls_mpi_cmp_mpi(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X),
+                            &ctx->MBEDTLS_PRIVATE(grp).P) >= 0 ||
+        mbedtls_mpi_cmp_mpi(&ctx->MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y),
+                            &ctx->MBEDTLS_PRIVATE(grp).P) >= 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_genkey] Q coordinate validation failed, return MBEDTLS_ERR_ECP_BAD_INPUT_DATA");
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Q coordinate validation passed");
+
+
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Calling mbedtls_ecp_check_pubkey");
+    ret = mbedtls_ecp_check_pubkey(&ctx->MBEDTLS_PRIVATE(grp),
+                                   &ctx->MBEDTLS_PRIVATE(Q));
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] mbedtls_ecp_check_pubkey ret=%d", ret);
+
+    DBG_DIRECT("[mbedtls_ecdsa_genkey] Exit function, return 0");
+    return 0;
+}
+
+
+int mbedtls_ecdsa_sign(mbedtls_ecp_group *grp, mbedtls_mpi *r, mbedtls_mpi *s,
+                       const mbedtls_mpi *d, const unsigned char *buf, size_t blen,
+                       mbedtls_f_rng_t *f_rng, void *p_rng)
+{
+    DBG_DIRECT("[mbedtls_ecdsa_sign] Enter");
+    (void) f_rng;
+    (void) p_rng;
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] Check inputs");
+    if (!grp || !r || !s || !d || !buf)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] Bad input");
+        return RET_BAD_INPUT;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] map_group_id_to_sel");
+    int curve_sel = map_group_id_to_sel(grp->id);
+    if (curve_sel < 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] Invalid curve_sel");
+        return RET_FEATURE_UNAVAIL;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] sel_to_bits_and_bytes");
+    int bits = 0;
+    size_t bytelen = 0;
+    if (sel_to_bits_and_bytes(curve_sel, &bits, &bytelen) != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] sel_to_bits_and_bytes failed");
+        return RET_FEATURE_UNAVAIL;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] hw_curve_init");
+    ECC_GROUP grp_hw;
+    if (hw_curve_init(&grp_hw, curve_sel, bits) != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] hw_curve_init failed");
+        return RET_HW_FAIL;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] setup d_hw");
+    ECC_OPERAND d_hw;
+    memset(&d_hw, 0, sizeof(d_hw));
+    d_hw.bit_len = (uint32_t)bits;
+    DBG_DIRECT("[mbedtls_ecdsa_sign] mpi_to_le_fixed for d");
+    int ret = mpi_to_le_fixed(d, d_hw.input, bytelen);
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] mpi_to_le_fixed failed");
+        return ret;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] setup hash_hw");
+    ECC_OPERAND hash_hw;
+    memset(&hash_hw, 0, sizeof(hash_hw));
+    hash_hw.bit_len = (uint32_t)(blen * 8);
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] memcpy hash");
+    memcpy(hash_hw.input, (void *)buf, blen);
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] setup sig_hw");
+    ECDSA_SIGNATURE sig_hw;
+    memset(&sig_hw, 0, sizeof(sig_hw));
+
+#if (ECDSA_ALT_DEBUG_ENABLE== 1)
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_sign1  hash %b", TRACE_BINARY(bytelen, hash_hw.input));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_sign1  d_hw %b", TRACE_BINARY(bytelen, d_hw.input));
+#endif
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] hw_ecdsa_sign");
+    if (!hw_ecdsa_sign(&grp_hw, &d_hw, &sig_hw, &hash_hw))
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] hw_ecdsa_sign failed");
+        return RET_HW_FAIL;
+    }
+
+#if (ECDSA_ALT_DEBUG_ENABLE== 1)
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_sign1  r %b", TRACE_BINARY(bytelen, sig_hw.r));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_sign1  s %b", TRACE_BINARY(bytelen, sig_hw.s));
+#endif
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] le_fixed_to_mpi for r");
+    ret = le_fixed_to_mpi(r, sig_hw.r, bytelen);
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] le_fixed_to_mpi r failed");
+        return ret;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] le_fixed_to_mpi for s");
+    ret = le_fixed_to_mpi(s, sig_hw.s, bytelen);
+
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_sign] le_fixed_to_mpi s failed");
+        return ret;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_sign] Success");
+    return 0;
+}
+
+int mbedtls_ecdsa_verify(mbedtls_ecp_group *grp,
+                         const unsigned char *hash, size_t hlen,
+                         const mbedtls_ecp_point *Q,
+                         const mbedtls_mpi *r, const mbedtls_mpi *s)
+{
+    DBG_DIRECT("[mbedtls_ecdsa_verify] Enter");
+    if (grp == NULL || hash == NULL || Q == NULL || r == NULL || s == NULL)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_verify] Bad input");
+        return MBEDTLS_ERR_ECP_BAD_INPUT_DATA;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] map_group_id_to_sel");
+    int curve_sel = map_group_id_to_sel(grp->id);
+    if (curve_sel < 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_verify] Invalid curve_sel");
+        return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] sel_to_bits_and_bytes");
+    int bits = 0;
+    size_t bytelen = 0;
+    if (sel_to_bits_and_bytes(curve_sel, &bits, &bytelen) != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_verify] sel_to_bits_and_bytes failed");
+        return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] hw_curve_init");
+    ECC_GROUP grp_hw;
+    if (hw_curve_init(&grp_hw, curve_sel, bits) != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_verify] hw_curve_init failed");
+        return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] setup Q_hw");
+    ECC_POINT Q_hw;
+    memset(&Q_hw, 0, sizeof(Q_hw));
+    DBG_DIRECT("[mbedtls_ecdsa_verify] ecp_point_to_le");
+    int ret = ecp_point_to_le(Q, Q_hw.x, Q_hw.y, bytelen);
+    if (ret != 0)
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_verify] ecp_point_to_le failed");
+        return ret;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] setup sig_hw");
+    ECDSA_SIGNATURE sig_hw;
+    memset(&sig_hw, 0, sizeof(sig_hw));
+    DBG_DIRECT("[mbedtls_ecdsa_verify] mpi_to_le_fixed r");
+    ret = mpi_to_le_fixed(r, sig_hw.r, bytelen);
+    if (ret != 0) { DBG_DIRECT("[mbedtls_ecdsa_verify] mpi_to_le_fixed r failed"); return ret; }
+    DBG_DIRECT("[mbedtls_ecdsa_verify] mpi_to_le_fixed s");
+    ret = mpi_to_le_fixed(s, sig_hw.s, bytelen);
+    if (ret != 0) { DBG_DIRECT("[mbedtls_ecdsa_verify] mpi_to_le_fixed s failed"); return ret; }
+
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] setup hash_hw");
+    ECC_OPERAND hash_hw;
+    memset(&hash_hw, 0, sizeof(hash_hw));
+    hash_hw.bit_len = (uint32_t)(hlen * 8);
+
+//    hw: pke The message hash with big endian
+//    be_to_le(hash, hash_hw.input, hlen);
+    DBG_DIRECT("[mbedtls_ecdsa_verify] memcpy hash");
+    memcpy(hash_hw.input, (void *)hash, hlen);
+
+#if (ECDSA_ALT_DEBUG_ENABLE== 1)
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_verify1  hash %b", TRACE_BINARY(bytelen, hash_hw.input));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_verify1  Qx %b", TRACE_BINARY(bytelen, Q_hw.x));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_verify1  Qy %b", TRACE_BINARY(bytelen, Q_hw.y));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_verify1  r %b", TRACE_BINARY(bytelen, sig_hw.r));
+    APP_PRINT_ERROR1(" mbedtls_ecdsa_verify1  s %b", TRACE_BINARY(bytelen, sig_hw.s));
+#endif
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] hw_ecdsa_verify");
+    if (!hw_ecdsa_verify(&grp_hw, &Q_hw, &sig_hw, &hash_hw))
+    {
+        DBG_DIRECT("[mbedtls_ecdsa_verify] hw_ecdsa_verify failed");
+        return MBEDTLS_ERR_ECP_VERIFY_FAILED;
+    }
+
+    DBG_DIRECT("[mbedtls_ecdsa_verify] Success");
+    return 0;
+}
+
+
+// test code
+#if (ECDSA_ALT_DEBUG_ENABLE == 1)
+
+// test_ecdsa_alt.c
+#include <stdio.h>
+#include <string.h>
+#include "mbedtls/ecdsa.h"
+#include "mbedtls/ecp.h"
+#include "mbedtls/ctr_drbg.h"
+#include "mbedtls/entropy.h"
+#include "mbedtls/sha256.h"
+#include "mbedtls/sha512.h"
+#include "mbedtls/error.h"
+
+#define ENABLE_SOFTWARE_VERIFY 1
+
+
+
+
+static int make_hash_for_curve(mbedtls_ecp_group_id gid,
+                               mbedtls_ctr_drbg_context *drbg,
+                               unsigned char *msg, size_t msg_len,
+                               unsigned char *hash, size_t *hash_len)
+{
+
+    int ret = mbedtls_ctr_drbg_random(drbg, msg, msg_len);
+    if (ret != 0) { return ret; }
+
+
+    switch (gid)
+    {
+    case MBEDTLS_ECP_DP_SECP192R1:
+    case MBEDTLS_ECP_DP_SECP192K1:
+        {
+
+            unsigned char buf256[32];
+            mbedtls_sha256(msg, msg_len, buf256, 0 /*SHA-256*/);
+            memcpy(hash, buf256, 24);
+            *hash_len = 24;
+            break;
+        }
+    case MBEDTLS_ECP_DP_SECP224R1:
+    case MBEDTLS_ECP_DP_SECP224K1:
+        {
+            unsigned char buf224[28];
+            // mbed TLS 3.x ?? sha256 with is224=1 ?? 28 ?? SHA-224
+            mbedtls_sha256(msg, msg_len, buf224, 1 /*SHA-224*/);
+            memcpy(hash, buf224, 28);
+            *hash_len = 28;
+            break;
+        }
+    case MBEDTLS_ECP_DP_SECP256R1:
+    case MBEDTLS_ECP_DP_SECP256K1:
+        {
+            mbedtls_sha256(msg, msg_len, hash, 0);
+            *hash_len = 32;
+            break;
+        }
+    case MBEDTLS_ECP_DP_SECP384R1:
+        {
+            unsigned char buf384[64];
+            mbedtls_sha512(msg, msg_len, buf384, 1 /*SHA-384*/);
+            memcpy(hash, buf384, 48);
+            *hash_len = 48;
+            break;
+        }
+    default:
+        return MBEDTLS_ERR_ECP_FEATURE_UNAVAILABLE;
+    }
+    return 0;
+}
+
+static int test_one_curve(mbedtls_ecp_group_id gid, int rounds)
+{
+    int ret = 0;
+
+    mbedtls_entropy_context entropy;
+    mbedtls_ctr_drbg_context ctr_drbg;
+    mbedtls_entropy_init(&entropy);
+    mbedtls_ctr_drbg_init(&ctr_drbg);
+    const char *pers = "ecdsa_alt_test";
+    ret = mbedtls_ctr_drbg_seed(&ctr_drbg, mbedtls_entropy_func, &entropy,
+                                (const unsigned char *)pers, strlen(pers));
+    if (ret != 0)
+    {
+        print_mbedtls_error("ctr_drbg_seed failed", ret);
+        goto cleanup_drbg;
+    }
+
+
+    mbedtls_ecdsa_context ctx;
+    mbedtls_ecdsa_init(&ctx);
+    ret = mbedtls_ecdsa_genkey(&ctx, gid, mbedtls_ctr_drbg_random, &ctr_drbg);
+    if (ret != 0)
+    {
+        print_mbedtls_error("ecdsa_genkey failed", ret);
+        goto cleanup_ctx;
+    }
+
+    DBG_DIRECT("Curve gid=%d: key generated. Q(X,Y) and d:\n", gid);
+
+    size_t bytelen = 0;
+    switch (gid)
+    {
+    case MBEDTLS_ECP_DP_SECP192R1:
+    case MBEDTLS_ECP_DP_SECP192K1: bytelen = 24; break;
+    case MBEDTLS_ECP_DP_SECP224R1:
+    case MBEDTLS_ECP_DP_SECP224K1: bytelen = 28; break;
+    case MBEDTLS_ECP_DP_SECP256R1:
+    case MBEDTLS_ECP_DP_SECP256K1: bytelen = 32; break;
+    case MBEDTLS_ECP_DP_SECP384R1: bytelen = 48; break;
+    default: bytelen = 32; break;
+    }
+    mpi_print_hex("d", &ctx.MBEDTLS_PRIVATE(d), bytelen);
+    mpi_print_hex("Qx", &ctx.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X), bytelen);
+    mpi_print_hex("Qy", &ctx.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), bytelen);
+
+    for (int i = 0; i < rounds; i++)
+    {
+        unsigned char msg[128];
+        unsigned char hash[64];
+        size_t hlen = 0;
+
+        ret = make_hash_for_curve(gid, &ctr_drbg, msg, sizeof(msg), hash, &hlen);
+        if (ret != 0)
+        {
+            print_mbedtls_error("make_hash_for_curve failed", ret);
+            goto cleanup_ctx;
+        }
+
+        APP_PRINT_ERROR1(" test_one_curve make_hash_for_curve hash %b", TRACE_BINARY(32, hash));
+
+        mbedtls_mpi r, s;
+        mbedtls_mpi_init(&r);
+        mbedtls_mpi_init(&s);
+
+        ret = mbedtls_ecdsa_sign(&ctx.MBEDTLS_PRIVATE(grp), &r, &s, &ctx.MBEDTLS_PRIVATE(d), hash, hlen,
+                                 mbedtls_ctr_drbg_random, &ctr_drbg);
+        DBG_DIRECT("hlen %d", hlen);
+        mpi_print_hex("ecdsa_verify r", &r, bytelen);
+        mpi_print_hex("ecdsa_verify s", &s, bytelen);
+
+
+//                    mbedtls_mpi_init(&r);
+//        mbedtls_mpi_init(&s);
+//        ret = mbedtls_ecdsa_sign1(&ctx.MBEDTLS_PRIVATE(grp), &r, &s, &ctx.MBEDTLS_PRIVATE(d), hash, hlen,
+//                                 mbedtls_ctr_drbg_random, &ctr_drbg);
+        if (ret != 0)
+        {
+            print_mbedtls_error("ecdsa_sign failed", ret);
+            mbedtls_mpi_free(&r);
+            mbedtls_mpi_free(&s);
+            goto cleanup_ctx;
+        }
+
+        ret = mbedtls_ecdsa_verify(&ctx.MBEDTLS_PRIVATE(grp), hash, hlen, &ctx.MBEDTLS_PRIVATE(Q), &r, &s);
+        if (ret != 0)
+        {
+            print_mbedtls_error("ecdsa_verify (HW) failed", ret);
+            mbedtls_mpi_free(&r);
+            mbedtls_mpi_free(&s);
+            goto cleanup_ctx;
+        }
+
+#if ENABLE_SOFTWARE_VERIFY
+
+        {
+            mbedtls_ecdsa_context sw;
+            mbedtls_ecdsa_init(&sw);
+            ret = mbedtls_ecp_group_load(&sw.MBEDTLS_PRIVATE(grp), gid);
+            if (ret == 0)
+            {
+                ret = mbedtls_mpi_copy(&sw.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X),
+                                       &ctx.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(X));
+                if (ret == 0) { ret = mbedtls_mpi_copy(&sw.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y), &ctx.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Y)); }
+                if (ret == 0) { ret = mbedtls_mpi_lset(&sw.MBEDTLS_PRIVATE(Q).MBEDTLS_PRIVATE(Z), 1); }
+                if (ret == 0)
+                {
+                    ret = mbedtls_ecdsa_verify(&sw.MBEDTLS_PRIVATE(grp), hash, hlen, &sw.MBEDTLS_PRIVATE(Q), &r, &s);
+                    if (ret != 0)
+                    {
+                        print_mbedtls_error("ecdsa_verify (SW path) failed", ret);
+                    }
+                    else
+                    {
+                        DBG_DIRECT("Round %d: software verify OK.\n", i);
+                    }
+                }
+            }
+            mbedtls_ecdsa_free(&sw);
+        }
+#endif
+
+
+        mbedtls_mpi_free(&r);
+        mbedtls_mpi_free(&s);
+    }
+
+    ret = 0;
+
+cleanup_ctx:
+    mbedtls_ecdsa_free(&ctx);
+cleanup_drbg:
+    mbedtls_ctr_drbg_free(&ctr_drbg);
+    mbedtls_entropy_free(&entropy);
+    return ret;
+}
+
+int test_mbedtls_ecdsa(void)
+{
+    int ret = 0;
+
+
+    mbedtls_ecp_group_id curves[] =
+    {
+        MBEDTLS_ECP_DP_SECP192R1,
+        MBEDTLS_ECP_DP_SECP224R1,
+        MBEDTLS_ECP_DP_SECP256R1,
+        MBEDTLS_ECP_DP_SECP384R1,
+        MBEDTLS_ECP_DP_SECP192K1,
+//            MBEDTLS_ECP_DP_SECP224K1,
+        MBEDTLS_ECP_DP_SECP256K1
+    };
+    const int num_curves = (int)(sizeof(curves) / sizeof(curves[0]));
+
+    for (int i = 0; i < num_curves; i++)
+    {
+        DBG_DIRECT("========================================\n");
+        DBG_DIRECT("Testing curve gid=%d ...\n", curves[i]);
+        ret = test_one_curve(curves[i], /*rounds*/ 1);
+        if (ret != 0)
+        {
+            DBG_DIRECT("Curve gid=%d test FAILED. ret=%d\n", curves[i], ret);
+            return ret;
+        }
+        else
+        {
+            DBG_DIRECT("Curve gid=%d test PASSED.\n", curves[i]);
+        }
+    }
+
+    DBG_DIRECT("All tests passed.\n");
+    return 0;
+}
+
+int test_mbedtls_rom_code(void)
+{
+    DBG_DIRECT("start to test hw_ecdsa:");
+
+    ECC_GROUP ecc_grp = {0};
+    ECC_OPERAND private_key = {0};
+    unsigned char message[100];
+
+    memset(message, 0x25, sizeof(message));
+
+    ECC_OPERAND hash = {.bit_len = 256};
+
+    unsigned char buf256[32];
+    mbedtls_sha256(message, 100, hash.input, 0 /*SHA-256*/);
+    APP_PRINT_ERROR1("test_mbedtls_rom_code hash %b", TRACE_BINARY(32, hash.input));
+    srand(NULL);
+
+
+
+    DBG_DIRECT("[============================test hw_ecdsa 192 bits============================]");
+
+    hash.bit_len = 192;
+
+    hw_pke_ecc_curve_init(&ecc_grp, CURVE_P192);
+
+    ECDSA_SIGNATURE SECP192R1_sign_signature;
+
+    ECC_POINT SECP192R1_public_key;
+
+    if (hw_ecc_gen_keypair(&ecc_grp, &private_key, &SECP192R1_public_key))
+    {
+        DBG_DIRECT("secp192r1 ecdsa gen key pair pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp192r1 ecdsa gen key pair failed");
+    }
+
+    if (hw_ecdsa_sign(&ecc_grp, &private_key, &SECP192R1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp192r1 ecdsa sign pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp192r1 ecdsa sign failed");
+    }
+
+    if (hw_ecdsa_verify(&ecc_grp, &SECP192R1_public_key, &SECP192R1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp192r1 ecdsa verify pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp192r1 ecdsa verify failed");
+    }
+
+
+    DBG_DIRECT("[============================test hw_ecdsa 192k1 bits============================]");
+
+    hash.bit_len = 192;
+
+    hw_pke_ecc_curve_init(&ecc_grp, CURVE_P192K1);
+
+    ECDSA_SIGNATURE SECP192K1_sign_signature;
+
+    ECC_POINT SECP192K1_public_key;
+
+    if (hw_ecc_gen_keypair(&ecc_grp, &private_key, &SECP192K1_public_key))
+    {
+        DBG_DIRECT("secp192K1 ecdsa gen key pair pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp192K1 ecdsa gen key pair failed");
+    }
+
+    if (hw_ecdsa_sign(&ecc_grp, &private_key, &SECP192K1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp192K1 ecdsa sign pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp192K1 ecdsa sign failed");
+    }
+
+    if (hw_ecdsa_verify(&ecc_grp, &SECP192K1_public_key, &SECP192K1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp192K1 ecdsa verify pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp192K1 ecdsa verify failed");
+    }
+
+
+    DBG_DIRECT("[============================test hw_ecdsa 224k1 bits============================]");
+
+
+    hash.bit_len = 224;
+
+    hw_pke_ecc_curve_init(&ecc_grp, CURVE_P224K1);
+
+    ECDSA_SIGNATURE SECP224K1_sign_signature;
+
+    ECC_POINT SECP224K1_public_key;
+
+    if (hw_ecc_gen_keypair(&ecc_grp, &private_key, &SECP224K1_public_key))
+    {
+        DBG_DIRECT("secp224K1 ecdsa gen key pair pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp224K1 ecdsa gen key pair failed");
+    }
+
+    if (hw_ecdsa_sign(&ecc_grp, &private_key, &SECP224K1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp224K1 ecdsa sign pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp224K1 ecdsa sign failed");
+    }
+
+    if (hw_ecdsa_verify(&ecc_grp, &SECP224K1_public_key, &SECP224K1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp224K1 ecdsa verify pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp224K1 ecdsa verify failed");
+    }
+
+
+    DBG_DIRECT("[============================test hw_ecdsa 224 bits============================]");
+
+    hash.bit_len = 224;
+
+    hw_pke_ecc_curve_init(&ecc_grp, CURVE_P224);
+
+    ECDSA_SIGNATURE SECP224R1_sign_signature;
+
+    ECC_POINT SECP224R1_public_key;
+
+    if (hw_ecc_gen_keypair(&ecc_grp, &private_key, &SECP224R1_public_key))
+    {
+        DBG_DIRECT("secp224r1 ecdsa gen key pair pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp224r1 ecdsa gen key pair failed");
+    }
+
+    if (hw_ecdsa_sign(&ecc_grp, &private_key, &SECP224R1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp224r1 ecdsa sign pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp224r1 ecdsa sign failed");
+    }
+
+    if (hw_ecdsa_verify(&ecc_grp, &SECP224R1_public_key, &SECP224R1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp224r1 ecdsa verify pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp224r1 ecdsa verify failed");
+    }
+
+    DBG_DIRECT("[============================test hw_ecdsa 256 bits============================]");
+    hash.bit_len = 256;
+
+    hw_pke_ecc_curve_init(&ecc_grp, CURVE_P256K1);
+
+    ECDSA_SIGNATURE SECP256R1_sign_signature;
+
+    ECC_POINT SECP256R1_public_key;
+
+    if (hw_ecc_gen_keypair(&ecc_grp, &private_key, &SECP256R1_public_key))
+    {
+        DBG_DIRECT("secp256r1 ecdsa gen key pair pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp256r1 ecdsa gen key pair failed");
+    }
+
+    APP_PRINT_ERROR1("test_mbedtls_rom_code  hw_ecdsa_sign hash %b", TRACE_BINARY(32, hash.input));
+    if (hw_ecdsa_sign(&ecc_grp, &private_key, &SECP256R1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp256r1 ecdsa sign pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp256r1 ecdsa sign failed");
+    }
+
+    if (hw_ecdsa_verify(&ecc_grp, &SECP256R1_public_key, &SECP256R1_sign_signature, &hash))
+    {
+        DBG_DIRECT("secp256r1 ecdsa verify pass");
+    }
+    else
+    {
+        DBG_DIRECT("secp256r1 ecdsa verify failed");
+    }
+
+
+    return 0;
+}
+
+#endif
+#endif

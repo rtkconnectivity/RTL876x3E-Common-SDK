@@ -1,0 +1,28 @@
+//-----------------------------------------------------------------------------------------------
+//20260528(v3.13.0.95)
+APP: 0.0.0.1(Commit-Id: 65431f1169a385539b3c94f2b79394aaa2e65ff2)
+
+Sys Patch Commit-Id: 7de957155e245013b08ac40af6cce546ffd22a57
+
+Stack Patch Commit-Id: da9b7ae6d5487d10a4c5240cf2ffdf099f80bcad
+
+CherryPick Commit-Id: 47ac3d9819c8b34e08c6b623955c1c95dbc763fd, 3815eb9c0678a2296e3b90654b86ef4e392bc652, efafff705f09c0b9af2ce80d2bef62fc4657808f, e65c5699012b0d564c185507fa70b3abfdf485ae, 8f227e04a909e078fe5fa549db41bad25235c498
+
+Change Note: 
+
+
+OTA Header: 0.0.0.1
+DSP Image: v1.1.3.42
+DspConfigTool: v3.130.55
+MCUConfigTool: v6.130.141
+MPPGTool: v6.1.180.0
+DebugAnalyzer: v4.1.13.1
+AciHostCLI: common_sdk-v3.13.0
+AudioConnect Android App: v2.20.32
+AudioConnect Android SDK: v2.20.32
+AudioConnect iOS App: v2.25.0
+AudioConnect iOS SDK: v1.27.0
+OTA Android App: v3.14.43
+OTA Android SDK: v3.14.43
+OTA iOS App: v4.15.3
+OTA iOS SDK: v1.18.3

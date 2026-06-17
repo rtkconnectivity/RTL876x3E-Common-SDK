@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+menu "board option"
+
+config SOC_SERIES_RTL8763E
+	bool "RTL8763E"
+	default y
+rsource "./bin/rtl87x3e/Kconfig.board"
+
+endmenu
+
+if SOC_SERIES_RTL8763E
+config REALTEK_SOC_SERIES_NAME
+   string
+   default "RTL8763E"
+config SOC_SERIES_RTL8763E_V2
+   bool
+   default y
+   help
+     RTL8763E V2
+endif
+
+if SOC_SERIES_RTL8763E
+rsource "Kconfig.RTL8763E.sdk"
+endif

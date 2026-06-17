@@ -1,0 +1,12 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+if REALTEK_LWIP
+
+config REALTEK_LWIP_TARGET_NAME
+   string
+   default "liblwip"
+
+endif

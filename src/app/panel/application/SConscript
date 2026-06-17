@@ -1,0 +1,27 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+
+#Import('rt_config')
+from building import *
+
+cwd = GetCurrentDir()
+
+# add the general drivers.
+src = Split("""
+""")
+
+# src += ['ringbuffer.c']
+src += ['main.c']
+src += ['wristband_init.c']
+if GetDepend(['MODULE_USING_RTK_GUI']):
+    src += ['app_panel.c']
+
+
+CPPPATH = [cwd, cwd + '/root_image_8762g']
+
+group = DefineGroup('app', src, depend = [''], CPPPATH = CPPPATH)
+
+Return('group')

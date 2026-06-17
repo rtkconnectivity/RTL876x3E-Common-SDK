@@ -1,0 +1,15 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+mainmenu "realtek otademo mainmenu"
+
+menu "otademo"
+rsource "../../../src/Kconfig"
+endmenu
+
+config REALTEK_APP_OTA_DEMO
+   bool
+   default y
+rsource "../../../Kconfig"

@@ -1,0 +1,785 @@
+/*
+ * Copyright (c) 2026, Realtek Semiconductor Corporation
+ *
+ * SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+ */
+
+#ifndef _APP_FLAGS_H_
+#define _APP_FLAGS_H_
+
+//Init value of default features are defined here
+//----- [Device related] -----
+#define F_APP_AUTO_POWER_TEST_LOG           0
+#define F_APP_TEST_SUPPORT                  1
+#define F_APP_DATA_CAPTURE_SUPPORT          1
+#define F_APP_SAIYAN_MODE                   0
+#define F_APP_SAIYAN_EQ_FITTING             1
+#define F_APP_SUPPORT_CAPTURE_ACOUSTICS_MP  1
+#define F_APP_CONSOLE_SUPPORT               1
+#define F_APP_DUT_MODE_AUTO_POWER_OFF       0
+#define F_APP_ATTACH_NREC_SUPPORT           0
+#define F_APP_VOICE_SPK_EQ_SUPPORT          1
+#define F_APP_VOICE_MIC_EQ_SUPPORT          1
+#define F_APP_SIDETONE_SUPPORT              1
+#define F_APP_SMOOTH_BAT_REPORT             1
+#define F_APP_USER_EQ_SUPPORT               1
+#define F_APP_DISABLE_NOTIFICATION_SUPPORT  0
+#define F_APP_MONITOR_MEMORY_AND_TIMER      0
+#define F_APP_UART_DFU                      0
+#define F_APP_SD_CARD_PLAY                  0
+#define F_APP_USB_HID_PC_TOOL               0
+#define F_APP_UAC_MEDIA_SILENCE_DETECT      0
+#define CONFIG_REALTEK_GFPS_FEATURE_SUPPORT    0
+#define CONFIG_REALTEK_GFPS_FINDER_SUPPORT    (1 && CONFIG_REALTEK_GFPS_FEATURE_SUPPORT)
+#define CONFIG_REALTEK_GFPS_LE_DEVICE_SUPPORT (1 && CONFIG_REALTEK_GFPS_FEATURE_SUPPORT)
+#define F_APP_CFU_FEATURE_SUPPORT           0
+#define F_APP_USB_HID_SEC_SUPPORT           0
+
+#define F_APP_DSP_SHM_80KB_TO_MCU_CHECK_SUPPORT   1
+#define CONFIG_REALTEK_APP_BOND_MGR_SUPPORT              1
+
+//----- [Dual Mode related] -----
+#define F_APP_BT_ANCS_CLIENT_SUPPORT       0
+
+
+
+//----- [BT related] -----
+#define F_APP_MULTILINK_ENABLE              0
+#define F_APP_A2DP_CODEC_LDAC_SUPPORT       0
+#define F_APP_BT_PROFILE_PBAP_PCE_SUPPORT   0
+#define F_APP_BT_PROFILE_MAP_MCE_SUPPORT    0
+#define F_APP_IAP_RTK_SUPPORT               0
+#define F_APP_IAP_SUPPORT                   0
+#define F_APP_BT_HID_DEVICE_SUPPORT         0
+#define F_APP_HID_MOUSE_SUPPORT             0
+#define F_APP_HID_KEYBOARD_SUPPORT          0
+#define F_APP_BT_HID_HOST_SUPPORT           0
+#define F_APP_A2DP_SOURCE_SUPPORT           0
+#define F_APP_A2DP_SINK_SUPPORT             0
+#define F_APP_HFP_AG_SUPPORT                0
+#define F_APP_HFP_HF_SUPPORT                0
+#define F_APP_ACL_ROLE_FORCE_MASTER         0
+#define F_APP_GATT_OVER_BREDR_SUPPORT       0
+#define F_APP_BREDR_SC_CTKD_SUPPORT         1
+#define F_APP_A2DP_MULTI_SINK_SUPPORT       0
+
+//----- [LE related] -----
+#define F_APP_GATT_SERVER_EXT_API_SUPPORT   1
+#define F_BT_GATT_SERVER_EXT_API            1
+#define F_APP_BLE_AMS_CLIENT_SUPPORT        0
+#define F_APP_BLE_HID_DEVICE_SUPPORT        0
+#define F_APP_BLE_HID_HOST_SUPPORT          0
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT    0
+#define F_APP_LE_AUDIO_ACCEPTOR_SUPPORT     0
+#define F_APP_SC_KEY_DERIVE_SUPPORT         1
+#define CONFIG_REALTEK_BT_GATT_CLIENT_SUPPORT            1
+
+//----- [Peripheral related] -----
+#define F_APP_ADC_SUPPORT                   1
+#define F_APP_LINEIN_SUPPORT                0
+#define F_APP_USB_AUDIO_SUPPORT             0
+#define F_APP_USB_HID_SUPPORT               0
+#define F_APP_USB_MSC_SUPPORT               0
+#define F_APP_USB_CDC_SUPPORT               0
+#define F_APP_USB_SUSPEND_SUPPORT           1
+#define F_APP_AMP_SUPPORT                   0
+#define F_APP_EXT_FLASH_SUPPORT             0
+#define F_APP_HIFI4_SUPPORT                 0
+#define F_APP_SPDIF_SUPPORT                 0
+#define F_APP_SD_CARD_SUPPORT               0
+
+#define F_APP_HFP_CMD_SUPPORT               1
+#define F_APP_DEVICE_CMD_SUPPORT            1
+#define F_APP_AVRCP_CMD_SUPPORT             1
+#define F_APP_PBAP_CMD_SUPPORT              0
+
+#define F_APP_CUSTOMER_VD_SPP_SUPPORT       1
+#define F_APP_CUSTOMER_RECORD_SUPPORT       1
+#define F_APP_GUI_SUPPORT                   0
+
+#define F_APP_ENABLE_TWO_ONE_WIRE_UART      0
+#define F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT  0
+
+#define F_APP_MULTI_CHANNEL_SUPPORT         0
+
+#if (TARGET_RTL8773DO || TARGET_RTL8773DFL)
+#define IC_NAME                         "RTL87X3D"
+#else
+#define IC_NAME                         "RTL87X3E"
+#endif
+
+#define F_APP_EXT_PA_SUPPORT                1
+
+#if F_APP_AMP_SUPPORT
+#define F_APP_CUSTOMER_EXT_PA_SUPPORT_AW88394           0
+#define F_APP_CUSTOMER_EXT_PA_SUPPORT_AW87390           1
+#define F_APP_CUSTOMER_EXT_PA_SUPPORT_AW_CUSTOMER       1
+#endif
+
+#define CONFIG_REALTEK_FINDMY_FEATURE_SUPPORT           0
+
+//----- [Sample configuration] -----
+/**
+ *  NOTE: Only one demo support flags shall be set 1
+ */
+#define F_APP_BT_AUDIO_TRANSMITTER_DEMO_SUPPORT         1
+#define F_APP_BT_AUDIO_RECEIVER_DEMO_SUPPORT            0
+#define F_APP_BT_AUDIO_TRANSCEIVER_DEMO_SUPPORT         0
+#define F_APP_BT_AUDIO_TRANSMITTER_MP3_DEMO_SUPPORT     0
+#define F_APP_CHARGE_CASE_DEMO_SUPPORT                  0
+#define F_APP_DASHBOARD_DEMO_SUPPORT                    0
+
+#if F_APP_BT_AUDIO_TRANSMITTER_DEMO_SUPPORT
+#undef F_APP_A2DP_SOURCE_SUPPORT
+#define F_APP_A2DP_SOURCE_SUPPORT               1
+#undef F_APP_HFP_AG_SUPPORT
+#define F_APP_HFP_AG_SUPPORT                    1
+
+#undef F_SOURCE_PLAY_SUPPORT
+#define F_SOURCE_PLAY_SUPPORT                   1
+#undef F_APP_LE_AUDIO_INITIATOR_SUPPORT
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT        1
+#undef F_APP_DISABLE_NOTIFICATION_SUPPORT
+#define F_APP_DISABLE_NOTIFICATION_SUPPORT      1
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT                 1
+#undef F_APP_BT_HID_HOST_SUPPORT
+#define F_APP_BT_HID_HOST_SUPPORT               1
+#undef F_APP_USB_HID_SUPPORT
+#define F_APP_USB_HID_SUPPORT                   1
+#undef USB_HID_CFU_USE_SINGLE_EP
+#define USB_HID_CFU_USE_SINGLE_EP               0
+#undef BLE_HID_CLIENT_SUPPORT
+#define BLE_HID_CLIENT_SUPPORT                  0
+#undef F_APP_SD_CARD_PLAY
+#define F_APP_SD_CARD_PLAY                      0
+
+#if F_SOURCE_PLAY_SUPPORT
+#undef F_APP_ATTACH_NREC_SUPPORT
+#define F_APP_ATTACH_NREC_SUPPORT               0
+#undef F_APP_ATTACH_LOCAL_PLAY_SUPPORT
+#define F_APP_ATTACH_LOCAL_PLAY_SUPPORT         0
+#endif
+
+#if F_APP_USB_AUDIO_SUPPORT
+#define F_APP_FWK_PIPE_DEMO_SUPPORT             1
+#else
+#define F_APP_FWK_PIPE_DEMO_SUPPORT             0
+#endif
+
+#if (F_APP_SD_CARD_PLAY || F_APP_USB_MSC_SUPPORT)
+#undef F_APP_SD_CARD_SUPPORT
+#define F_APP_SD_CARD_SUPPORT                   1
+#define F_APP_SD_CARD_LOCALPLAY                 0
+#endif
+
+#endif /* end of F_APP_BT_AUDIO_TRANSMITTER_DEMO_SUPPORT */
+
+#if CONFIG_REALTEK_APP_BT_AUDIO_TRI_DONGLE
+#define F_APP_DISABLE_PRIVATE_DESC_FEATURE  0
+#undef USB_HID_CFU_USE_SINGLE_EP
+#define USB_HID_CFU_USE_SINGLE_EP           1
+#undef F_APP_A2DP_SOURCE_SUPPORT
+#define F_APP_A2DP_SOURCE_SUPPORT           1
+#undef F_APP_HFP_AG_SUPPORT
+#define F_APP_HFP_AG_SUPPORT                1
+#define F_APP_RESET_DISCOVERY_BY_BLE_CONN   0
+#define F_APP_LEAUDIO_SPP_CMD_SUPPORT       0
+#define F_APP_HID_TELEPHONY_SUPPORT         0
+#define F_APP_UWB_SCENARIO_SUPPORT          0
+#define F_APP_NXP_UWB_DRIVER_SUPPORT        0
+#undef F_APP_USB_HID_PC_TOOL
+#define F_APP_USB_HID_PC_TOOL               1
+#undef F_SOURCE_PLAY_SUPPORT
+#define F_SOURCE_PLAY_SUPPORT               1
+#undef F_APP_LE_AUDIO_INITIATOR_SUPPORT
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT    1
+#undef F_APP_DISABLE_NOTIFICATION_SUPPORT
+#define F_APP_DISABLE_NOTIFICATION_SUPPORT  1
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT             1
+#undef F_APP_USB_HID_SUPPORT
+#define F_APP_USB_HID_SUPPORT               1
+#undef F_APP_FWK_PIPE_DEMO_SUPPORT
+#define F_APP_FWK_PIPE_DEMO_SUPPORT         1
+#undef TRANSMIT_CLIENT_SUPPORT
+#define TRANSMIT_CLIENT_SUPPORT             1
+#undef BLE_HID_CLIENT_SUPPORT
+#define BLE_HID_CLIENT_SUPPORT              1
+#undef F_APP_BT_AUDIO_TRI_DONGLE_2_4G
+#define F_APP_BT_AUDIO_TRI_DONGLE_2_4G      0
+#undef F_APP_UAC_MEDIA_SILENCE_DETECT
+#define F_APP_UAC_MEDIA_SILENCE_DETECT      0
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           1
+#undef F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO
+#define F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO   1
+#undef F_APP_USB_CDC_SUPPORT
+#define F_APP_USB_CDC_SUPPORT               0
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     0
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      0
+#define F_APP_MULTI_2EP_1_BR_1_BLE_HID      0
+#define F_APP_UAC_SDK_SUPPORT               0
+#define F_APP_FIX_RAPOO_M300G_IOP_ISSUE     0
+#define CONFIG_UHID_DONGLE_FEATURE          0
+#define CONFIG_YYLX_DONGLE_FEATURE          0
+#define F_APP_1_EP_HID_MULTI_DEV_CDC_SUPPORT 0
+#define F_APP_ADD_NON_YYLX_BLE_SCENARIO      0
+#define F_APP_TRI_DONGLE_LEAUDIO_MCP        0
+#define F_APP_TRI_DONGLE_LEAUDIO_VCS        0
+#define F_APP_TRI_DONGLE_LEAUDIO_CCP        0
+#define F_APP_TRI_DONGLE_LEAUDIO_MICS       0
+#define F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO_UNICAST   0
+#if F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO_UNICAST
+#undef F_APP_SC_KEY_DERIVE_SUPPORT
+#define F_APP_SC_KEY_DERIVE_SUPPORT         0
+#undef F_APP_BT_AUDIO_TRI_LEA_HIGH_PRIORITY
+#define F_APP_BT_AUDIO_TRI_LEA_HIGH_PRIORITY        1
+#endif
+
+#if F_SOURCE_PLAY_SUPPORT
+#undef F_APP_ATTACH_NREC_SUPPORT
+#define F_APP_ATTACH_NREC_SUPPORT           0
+#undef F_APP_ATTACH_LOCAL_PLAY_SUPPORT
+#define F_APP_ATTACH_LOCAL_PLAY_SUPPORT     0
+#endif
+
+#if CONFIG_DONGLE_RTL8763ESH
+/* uac sdk + 1 ble hid*/
+#undef F_APP_DISABLE_TRI_DONGLE_DSP_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_DSP_SUPPORT        1
+#undef F_APP_DISABLE_TRI_DONGLE_BUD_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_BUD_SUPPORT        1
+#undef F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT     1
+#define F_APP_DISABLE_CUSTOMER_CMD_SUPPORT  1
+#undef F_APP_SUPPORT_CAPTURE_ACOUSTICS_MP
+#define F_APP_SUPPORT_CAPTURE_ACOUSTICS_MP  0
+#undef F_APP_GATT_OVER_BREDR_SUPPORT
+#define F_APP_GATT_OVER_BREDR_SUPPORT       0
+#undef F_APP_CUSTOMER_VD_SPP_SUPPORT
+#define F_APP_CUSTOMER_VD_SPP_SUPPORT       0
+#undef F_APP_CUSTOMER_RECORD_SUPPORT
+#define F_APP_CUSTOMER_RECORD_SUPPORT       0
+#undef F_APP_TEST_SUPPORT
+#define F_APP_TEST_SUPPORT                  0
+#undef F_APP_DATA_CAPTURE_SUPPORT
+#define F_APP_DATA_CAPTURE_SUPPORT          0
+#undef F_APP_SAIYAN_EQ_FITTING
+#define F_APP_SAIYAN_EQ_FITTING             0
+#undef F_APP_VOICE_NREC_SUPPORT
+#define F_APP_VOICE_NREC_SUPPORT            0
+#undef F_APP_VOICE_SPK_EQ_SUPPORT
+#define F_APP_VOICE_SPK_EQ_SUPPORT          0
+#undef F_APP_VOICE_MIC_EQ_SUPPORT
+#define F_APP_VOICE_MIC_EQ_SUPPORT          0
+#undef F_APP_SIDETONE_SUPPORT
+#define F_APP_SIDETONE_SUPPORT              0
+#undef F_APP_USER_EQ_SUPPORT
+#define F_APP_USER_EQ_SUPPORT               0
+#undef F_APP_HFP_CMD_SUPPORT
+#define F_APP_HFP_CMD_SUPPORT               0
+#undef F_APP_DEVICE_CMD_SUPPORT
+#define F_APP_DEVICE_CMD_SUPPORT            0
+#undef F_APP_AVRCP_CMD_SUPPORT
+#define F_APP_AVRCP_CMD_SUPPORT             0
+#undef F_APP_BT_HID_HOST_SUPPORT
+#define F_APP_BT_HID_HOST_SUPPORT           0
+#undef F_SOURCE_PLAY_SUPPORT
+#define F_SOURCE_PLAY_SUPPORT               0
+#undef F_APP_FWK_PIPE_DEMO_SUPPORT
+#define F_APP_FWK_PIPE_DEMO_SUPPORT         0
+#undef F_APP_LE_AUDIO_INITIATOR_SUPPORT
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT    0
+#undef F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO
+#define F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO   0
+#undef F_APP_UAC_SDK_SUPPORT
+#define F_APP_UAC_SDK_SUPPORT               1
+#undef F_APP_CFU_FEATURE_SUPPORT
+#define F_APP_CFU_FEATURE_SUPPORT           1
+#undef F_APP_CFU_PASSTHROUGH_OTA_SUPPORT
+#define F_APP_CFU_PASSTHROUGH_OTA_SUPPORT   1
+#undef F_APP_USB_ENUMERATE_RETRY_SUPPORT
+#define F_APP_USB_ENUMERATE_RETRY_SUPPORT   0
+#undef F_APP_UWB_SCENARIO_SUPPORT
+#define F_APP_UWB_SCENARIO_SUPPORT          0
+#undef F_APP_NXP_UWB_DRIVER_SUPPORT
+#define F_APP_NXP_UWB_DRIVER_SUPPORT        0
+#undef F_APP_DISABLE_PRIVATE_DESC_FEATURE
+#define F_APP_DISABLE_PRIVATE_DESC_FEATURE  1
+#if F_APP_DISABLE_PRIVATE_DESC_FEATURE
+/*1 ep hid (1 ble)*/
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           0
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     1
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      0
+#else
+/*2 ep hid (1 ble)*/
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           1
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     0
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      1
+#endif
+#endif
+
+#if F_APP_UWB_SCENARIO_SUPPORT
+/*1 ble + no cdc + no uac*/
+#undef F_APP_USB_CDC_SUPPORT
+#define F_APP_USB_CDC_SUPPORT               0
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT             0
+#undef F_APP_UAC_SDK_SUPPORT
+#define F_APP_UAC_SDK_SUPPORT               0
+#undef F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT  1
+#undef CONFIG_YYLX_DONGLE_FEATURE
+#define CONFIG_YYLX_DONGLE_FEATURE          0
+#if F_APP_DISABLE_PRIVATE_DESC_FEATURE
+/*1 ep hid (1 ble)*/
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           0
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     1
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      0
+#else
+/*2 ep hid (1 ble)*/
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           1
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     0
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      1
+#endif
+#endif
+
+#if CONFIG_UHID_DONGLE_FEATURE
+/* cdc + 1 ep hid (1 ble) + no uac*/
+#undef F_APP_USB_CDC_SUPPORT
+#define F_APP_USB_CDC_SUPPORT               1
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT             0
+#undef F_APP_UAC_SDK_SUPPORT
+#define F_APP_UAC_SDK_SUPPORT               0
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           0
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     1
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      0
+#undef F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT  1
+#undef F_APP_CFU_PASSTHROUGH_OTA_SUPPORT
+#define F_APP_CFU_PASSTHROUGH_OTA_SUPPORT   1
+#undef F_APP_UWB_SCENARIO_SUPPORT
+#define F_APP_UWB_SCENARIO_SUPPORT          0
+#undef F_APP_NXP_UWB_DRIVER_SUPPORT
+#define F_APP_NXP_UWB_DRIVER_SUPPORT        0
+#undef CONFIG_YYLX_DONGLE_FEATURE
+#define CONFIG_YYLX_DONGLE_FEATURE          0
+#endif
+
+#if CONFIG_YYLX_DONGLE_FEATURE
+/* cdc + 1 ep hid (1 ble) + no uac*/
+#undef F_APP_USB_CDC_SUPPORT
+#define F_APP_USB_CDC_SUPPORT               1
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT             0
+#undef F_APP_UAC_SDK_SUPPORT
+#define F_APP_UAC_SDK_SUPPORT               0
+#undef F_APP_USB_HID_SEC_SUPPORT
+#define F_APP_USB_HID_SEC_SUPPORT           0
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     1
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      0
+#undef F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT  1
+#undef F_APP_UWB_SCENARIO_SUPPORT
+#define F_APP_UWB_SCENARIO_SUPPORT          0
+/* cdc(3 BLE) + 1 hid(RCU) + cfu (Max 4 ble)*/
+#undef F_APP_1_EP_HID_MULTI_DEV_CDC_SUPPORT
+#define F_APP_1_EP_HID_MULTI_DEV_CDC_SUPPORT 1
+#if F_APP_1_EP_HID_MULTI_DEV_CDC_SUPPORT
+#undef F_APP_ADD_NON_YYLX_BLE_SCENARIO
+#define F_APP_ADD_NON_YYLX_BLE_SCENARIO      0
+#endif
+#endif
+
+//feature
+#if F_APP_DISABLE_PRIVATE_DESC_FEATURE
+#undef F_APP_USB_HID_PC_TOOL
+#define F_APP_USB_HID_PC_TOOL                       0
+#undef F_APP_HID_TELEPHONY_SUPPORT
+#define F_APP_HID_TELEPHONY_SUPPORT                 0
+#endif
+
+#if (F_APP_USB_HID_PC_TOOL || USB_HID_CFU_USE_SINGLE_EP)
+#undef F_APP_CFU_FEATURE_SUPPORT
+#define F_APP_CFU_FEATURE_SUPPORT           1
+#undef F_APP_CFU_PASSTHROUGH_OTA_SUPPORT
+#define F_APP_CFU_PASSTHROUGH_OTA_SUPPORT   1
+#else
+#undef F_APP_UART_DFU
+#define F_APP_UART_DFU                      1
+#endif
+
+#if F_APP_MULTI_2EP_1_BR_1_BLE_HID
+#undef F_APP_BT_HID_HOST_SUPPORT
+#define F_APP_BT_HID_HOST_SUPPORT           1
+#undef F_APP_1_EP_1_DEVICE_HID_SUPPORT
+#define F_APP_1_EP_1_DEVICE_HID_SUPPORT     0
+#undef F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#define F_APP_2_EP_1_HID_UPDATE_ON_EP2      0
+#undef F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT
+#define F_APP_DISABLE_TRI_DONGLE_EDR_BR_SUPPORT  0
+#endif
+
+#if F_APP_2_EP_1_HID_UPDATE_ON_EP2
+#undef F_APP_MULTI_2EP_1_BR_1_BLE_HID
+#define F_APP_MULTI_2EP_1_BR_1_BLE_HID      0
+#endif
+
+#if F_APP_NXP_UWB_DRIVER_SUPPORT
+#define F_APP_NXP_UWB_CALIBRATION_DATA_DUMP 0
+#endif
+
+#if F_APP_BT_AUDIO_TRI_DONGLE_2_4G
+/* USB HID DEVICE TYPE */
+#define USB_2DOT4G_DONGLE                   1
+#define USB_2DOT4G_DONGLE_PCB               2
+#define USB_HID_DEVICE_TYPE                 USB_2DOT4G_DONGLE
+#define TRIPLE_ENABLE_SPI                   1
+#endif
+
+#if F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO
+#undef F_APP_LEAUDIO_SPP_CMD_SUPPORT
+#define F_APP_LEAUDIO_SPP_CMD_SUPPORT       0
+#undef MCP_MEDIA_CONTROL_SERVER
+#define MCP_MEDIA_CONTROL_SERVER            1
+#undef LE_AUDIO_VCS_CLIENT_SUPPORT
+#define LE_AUDIO_VCS_CLIENT_SUPPORT         1
+#undef LE_AUDIO_MICS_CLIENT_SUPPORT
+#define LE_AUDIO_MICS_CLIENT_SUPPORT        1
+#if F_APP_BT_AUDIO_TRI_DONGLE_LEAUDIO_UNICAST
+#undef F_APP_TRI_DONGLE_LEAUDIO_MCP
+#define F_APP_TRI_DONGLE_LEAUDIO_MCP        1
+#undef F_APP_TRI_DONGLE_LEAUDIO_VCS
+#define F_APP_TRI_DONGLE_LEAUDIO_VCS        1
+#undef F_APP_TRI_DONGLE_LEAUDIO_CCP
+#define F_APP_TRI_DONGLE_LEAUDIO_CCP        1
+#endif
+#if F_APP_TRI_DONGLE_LEAUDIO_CCP
+#undef F_APP_HID_TELEPHONY_SUPPORT
+#define F_APP_HID_TELEPHONY_SUPPORT         1
+#undef F_APP_TRI_DONGLE_LEAUDIO_MICS
+#define F_APP_TRI_DONGLE_LEAUDIO_MICS       1
+#endif
+#endif
+#endif
+
+#if F_APP_BT_AUDIO_RECEIVER_DEMO_SUPPORT
+#undef F_APP_A2DP_SINK_SUPPORT
+#define F_APP_A2DP_SINK_SUPPORT             1
+#undef F_APP_HFP_HF_SUPPORT
+#define F_APP_HFP_HF_SUPPORT                1
+
+#undef F_APP_BT_PROFILE_PBAP_PCE_SUPPORT
+#define F_APP_BT_PROFILE_PBAP_PCE_SUPPORT   1
+#undef F_APP_BT_PROFILE_MAP_MCE_SUPPORT
+#define F_APP_BT_PROFILE_MAP_MCE_SUPPORT    1
+#undef F_APP_IAP_RTK_SUPPORT
+#define F_APP_IAP_RTK_SUPPORT               0
+#undef F_APP_IAP_SUPPORT
+#define F_APP_IAP_SUPPORT                   0
+#undef F_APP_LE_AUDIO_ACCEPTOR_SUPPORT
+#define F_APP_LE_AUDIO_ACCEPTOR_SUPPORT     1
+
+#undef F_APP_SCO_XMIT_AG_SUPPORT
+#define F_APP_SCO_XMIT_AG_SUPPORT           0
+
+#undef F_APP_PBAP_CMD_SUPPORT
+#define F_APP_PBAP_CMD_SUPPORT              1
+
+#undef CONFIG_REALTEK_GFPS_FEATURE_SUPPORT
+#define CONFIG_REALTEK_GFPS_FEATURE_SUPPORT   0
+#undef CONFIG_REALTEK_GFPS_FINDER_SUPPORT
+#define CONFIG_REALTEK_GFPS_FINDER_SUPPORT    (1 && CONFIG_REALTEK_GFPS_FEATURE_SUPPORT)
+#undef CONFIG_REALTEK_GFPS_LE_DEVICE_SUPPORT
+#define CONFIG_REALTEK_GFPS_LE_DEVICE_SUPPORT (1 && CONFIG_REALTEK_GFPS_FEATURE_SUPPORT)
+
+#endif /* end of F_APP_BT_AUDIO_RECEIVER_DEMO_SUPPORT */
+
+
+#if F_APP_BT_AUDIO_TRANSCEIVER_DEMO_SUPPORT
+#undef F_APP_DISABLE_NOTIFICATION_SUPPORT
+#define F_APP_DISABLE_NOTIFICATION_SUPPORT  1
+
+#define F_APP_SPI_ROLE_MASTER               0
+#define F_APP_SPI_ROLE_SLAVE                0
+#define F_APP_INTEGRATED_TRANSCEIVER        0
+
+#undef F_APP_AMP_SUPPORT
+#define F_APP_AMP_SUPPORT                   0
+
+#if F_APP_SPI_ROLE_MASTER
+#undef F_APP_A2DP_SINK_SUPPORT
+#define F_APP_A2DP_SINK_SUPPORT             1
+#undef F_APP_HFP_HF_SUPPORT
+#define F_APP_HFP_HF_SUPPORT                1
+
+#define F_APP_A2DP_XMIT_SNK_LEA_SUPPORT     1
+#define F_APP_A2DP_XMIT_SNK_SUPPORT         1
+#define F_APP_SCO_XMIT_HF_SUPPORT           1
+#endif
+
+#if F_APP_SPI_ROLE_SLAVE
+#undef F_APP_A2DP_SOURCE_SUPPORT
+#define F_APP_A2DP_SOURCE_SUPPORT           1
+#undef F_APP_HFP_AG_SUPPORT
+#define F_APP_HFP_AG_SUPPORT                1
+
+#define F_APP_A2DP_XMIT_SRC_LEA_SUPPORT     1
+#define F_APP_A2DP_XMIT_SRC_SUPPORT         1
+#define F_APP_SCO_XMIT_AG_SUPPORT           1
+#if F_APP_A2DP_XMIT_SRC_LEA_SUPPORT
+#undef F_APP_LE_AUDIO_INITIATOR_SUPPORT
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT    1
+#endif /* end of F_APP_A2DP_XMIT_SRC_LEA_SUPPORT */
+#endif /* end of F_APP_SPI_ROLE_SLAVE */
+
+#if F_APP_INTEGRATED_TRANSCEIVER
+#undef F_APP_MULTILINK_ENABLE
+#define F_APP_MULTILINK_ENABLE              1
+#undef F_APP_ACL_ROLE_FORCE_MASTER
+#define F_APP_ACL_ROLE_FORCE_MASTER         1
+
+#undef F_SOURCE_PLAY_SUPPORT
+#define F_SOURCE_PLAY_SUPPORT               1
+#undef F_APP_FWK_PIPE_DEMO_SUPPORT
+#define F_APP_FWK_PIPE_DEMO_SUPPORT         1
+#undef F_APP_A2DP_SOURCE_SUPPORT
+#define F_APP_A2DP_SOURCE_SUPPORT           1
+#undef F_APP_HFP_AG_SUPPORT
+#define F_APP_HFP_AG_SUPPORT                1
+#undef F_APP_A2DP_SINK_SUPPORT
+#define F_APP_A2DP_SINK_SUPPORT             1
+#undef F_APP_HFP_HF_SUPPORT
+#define F_APP_HFP_HF_SUPPORT                1
+
+#if F_SOURCE_PLAY_SUPPORT
+#undef F_APP_ATTACH_NREC_SUPPORT
+#define F_APP_ATTACH_NREC_SUPPORT           0
+#undef F_APP_ATTACH_LOCAL_PLAY_SUPPORT
+#define F_APP_ATTACH_LOCAL_PLAY_SUPPORT     0
+#endif
+#endif
+
+/* Shall be set 1 when support a2dp multi_sink function */
+#undef F_APP_A2DP_MULTI_SINK_SUPPORT
+#define F_APP_A2DP_MULTI_SINK_SUPPORT       0
+
+#undef F_APP_MULTI_CHANNEL_SUPPORT
+#define F_APP_MULTI_CHANNEL_SUPPORT         0
+
+#undef F_APP_LE_AUDIO_INITIATOR_SUPPORT
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT    1
+#undef F_APP_LE_AUDIO_ACCEPTOR_SUPPORT
+#define F_APP_LE_AUDIO_ACCEPTOR_SUPPORT     1
+
+#endif /* end of F_APP_BT_AUDIO_TRANSCEIVER_DEMO_SUPPORT */
+
+
+#if F_APP_BT_AUDIO_TRANSMITTER_MP3_DEMO_SUPPORT
+#undef F_APP_A2DP_SOURCE_SUPPORT
+#define F_APP_A2DP_SOURCE_SUPPORT           1
+#undef F_APP_HFP_AG_SUPPORT
+#define F_APP_HFP_AG_SUPPORT                1
+
+#define F_APP_MUSIC_LOCAL_PLAY_SUPPORT                  1
+#define F_APP_MUSIC_A2DP_SOURCE_SUPPORT                 1
+#define F_APP_CUSTOMER_AUDIO_POLICY_SUPPORT             1
+#endif /* end of F_APP_BT_AUDIO_TRANSMITTER_MP3_DEMO_SUPPORT */
+
+
+#if F_APP_CHARGE_CASE_DEMO_SUPPORT
+#undef F_APP_A2DP_SOURCE_SUPPORT
+#define F_APP_A2DP_SOURCE_SUPPORT               1
+#undef F_APP_HFP_AG_SUPPORT
+#define F_APP_HFP_AG_SUPPORT                    1
+
+#undef F_SOURCE_PLAY_SUPPORT
+#define F_SOURCE_PLAY_SUPPORT                   1
+#undef F_APP_LE_AUDIO_INITIATOR_SUPPORT
+#define F_APP_LE_AUDIO_INITIATOR_SUPPORT        1
+#undef F_APP_DISABLE_NOTIFICATION_SUPPORT
+#define F_APP_DISABLE_NOTIFICATION_SUPPORT      1
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT                 1
+#undef TRANSMIT_CLIENT_SUPPORT
+#define TRANSMIT_CLIENT_SUPPORT                 1
+#undef F_APP_CHARGING_CASE_CMD_SUPPORT
+#define F_APP_CHARGING_CASE_CMD_SUPPORT         1
+#undef F_APP_CHARGING_CASE_CMD_TEST_SUPPORT
+#define F_APP_CHARGING_CASE_CMD_TEST_SUPPORT    0
+#undef F_APP_SD_CARD_PLAY
+#define F_APP_SD_CARD_PLAY                      0
+
+#if F_SOURCE_PLAY_SUPPORT
+#undef F_APP_ATTACH_NREC_SUPPORT
+#define F_APP_ATTACH_NREC_SUPPORT               0
+#undef F_APP_ATTACH_LOCAL_PLAY_SUPPORT
+#define F_APP_ATTACH_LOCAL_PLAY_SUPPORT         0
+#endif
+
+#if (F_APP_SD_CARD_PLAY || F_APP_USB_MSC_SUPPORT)
+#undef F_APP_SD_CARD_SUPPORT
+#define F_APP_SD_CARD_SUPPORT                   1
+#endif
+
+#if F_APP_USB_AUDIO_SUPPORT
+#define F_APP_FWK_PIPE_DEMO_SUPPORT             1
+#else
+#define F_APP_FWK_PIPE_DEMO_SUPPORT             0
+#endif
+
+#undef CONFIG_REALTEK_FINDMY_FEATURE_SUPPORT
+#define CONFIG_REALTEK_FINDMY_FEATURE_SUPPORT            0
+
+#undef F_APP_ENABLE_TWO_ONE_WIRE_UART
+#define F_APP_ENABLE_TWO_ONE_WIRE_UART          0
+
+#undef F_TRANS_UPDATE_FILE_SUPPORT
+#define F_TRANS_UPDATE_FILE_SUPPORT             0
+
+#undef F_APP_GUI_SUPPORT
+#define F_APP_GUI_SUPPORT                       1
+
+#if F_GUI_SDCARD_LIST_DEMO
+#undef F_APP_SD_CARD_PLAY
+#define F_APP_SD_CARD_PLAY                      1
+
+
+#if F_APP_SD_CARD_PLAY
+#undef F_APP_SD_CARD_SUPPORT
+#define F_APP_SD_CARD_SUPPORT                   1
+#undef F_APP_SD_CARD_LOCALPLAY
+#define F_APP_SD_CARD_LOCALPLAY                 1
+#endif
+
+#endif
+
+#undef F_APP_GATT_OVER_BREDR_SUPPORT
+#define F_APP_GATT_OVER_BREDR_SUPPORT           0
+
+#endif /* end of F_APP_CHARGE_CASE_DEMO_SUPPORT */
+
+#if F_APP_DASHBOARD_DEMO_SUPPORT
+#undef F_APP_A2DP_SINK_SUPPORT
+#define F_APP_A2DP_SINK_SUPPORT                 1
+#undef F_APP_HFP_HF_SUPPORT
+#define F_APP_HFP_HF_SUPPORT                    1
+
+#undef F_APP_DISABLE_NOTIFICATION_SUPPORT
+#define F_APP_DISABLE_NOTIFICATION_SUPPORT      1
+#undef F_APP_BLE_HID_DEVICE_SUPPORT
+#define F_APP_BLE_HID_DEVICE_SUPPORT            1
+#undef F_APP_BT_PROFILE_PBAP_PCE_SUPPORT
+#define F_APP_BT_PROFILE_PBAP_PCE_SUPPORT       1
+#undef F_APP_PBAP_CMD_SUPPORT
+#define F_APP_PBAP_CMD_SUPPORT                  1
+#undef F_APP_BT_PROFILE_MAP_MCE_SUPPORT
+#define F_APP_BT_PROFILE_MAP_MCE_SUPPORT        1
+#undef F_APP_BT_ANCS_CLIENT_SUPPORT
+#define F_APP_BT_ANCS_CLIENT_SUPPORT           1
+#undef F_APP_BLE_AMS_CLIENT_SUPPORT
+#define F_APP_BLE_AMS_CLIENT_SUPPORT            1
+
+#endif /* end of F_APP_DASHBOARD_DEMO_SUPPORT */
+
+#if F_APP_GUI_SUPPORT
+
+#define F_GUI_SIMPLE_SPEED_DEMO                 0  /*only select one demo flag to set true*/
+
+//#define  ENABLE_RTK_GUI_SCRIPT_AS_A_APP
+#define FB_DIRECTION_ROTATE                     0 /*option feature, if screen support swapping the x and y coordinates, this feature would reduce frame rate*/
+#define FB_DATA_ROTATE                          0 /*option feature and rely on FB_DIRECTION_ROTATE, The macro only needs to be enabled in one specific situation, which is when the screen does not support swapping the x and y coordinates. this feature would reduce frame rate Significantly*/
+
+#define F_GUI_BENCHMARK_SUPPORT                 0
+
+#if CONFIG_SOC_SERIES_RTL8773E
+#undef ENABLE_PSRAM_FOR_LCD
+#define ENABLE_PSRAM_FOR_LCD                    1
+#undef ENABLE_PPE_FUNCTION
+#define ENABLE_PPE_FUNCTION                     1
+#endif
+
+#if (ENABLE_PPE_FUNCTION && ENABLE_PSRAM_FOR_LCD)
+#define F_APP_GUI_USE_PSRAM                    (1)
+#define PSRAM_GUI_START_ADDR                   0x4000000
+#define PSRAM_FRAME_BUF1_ADDR                  PSRAM_GUI_START_ADDR
+#define PSRAM_GUI_HEAP_ADDR                    (PSRAM_FRAME_BUF1_ADDR + 448 * 368 * 2 * 2)
+#endif
+
+#if F_GUI_BENCHMARK_SUPPORT
+#undef FB_DIRECTION_ROTATE
+#define FB_DIRECTION_ROTATE                     0
+#undef FB_DATA_ROTATE
+#define FB_DATA_ROTATE                          0
+#undef F_GUI_CHARGEBOX_DEMO
+#define F_GUI_CHARGEBOX_DEMO                    0
+#undef F_GUI_SDCARD_LIST_DEMO
+#define F_GUI_SDCARD_LIST_DEMO                  0
+#undef F_GUI_SDCARD_LIST_DEMO
+#define F_GUI_SDCARD_LIST_DEMO                  0
+#endif
+#endif
+
+#if F_APP_ENABLE_TWO_ONE_WIRE_UART
+#undef F_APP_ONE_WIRE_UART_SUPPORT
+#define F_APP_ONE_WIRE_UART_SUPPORT 1
+#endif
+
+#if (TARGET_RTL8773DO || TARGET_RTL8773DFL)
+#undef F_APP_DSP_SHM_80KB_TO_MCU_CHECK_SUPPORT
+#define F_APP_DSP_SHM_80KB_TO_MCU_CHECK_SUPPORT         0
+#undef F_APP_HIFI4_SUPPORT
+#define F_APP_HIFI4_SUPPORT                             1
+#undef F_APP_SPDIF_SUPPORT
+#define F_APP_SPDIF_SUPPORT                             1
+#if ENABLE_PSRAM_FOR_LCD
+/*enable psram hardware support*/
+#endif
+#endif
+
+#if (TARGET_RTL87X3EP)
+#undef F_APP_DSP_SHM_80KB_TO_MCU_CHECK_SUPPORT
+#define F_APP_DSP_SHM_80KB_TO_MCU_CHECK_SUPPORT         0
+#undef F_APP_USB_AUDIO_SUPPORT
+#define F_APP_USB_AUDIO_SUPPORT                         0
+#undef F_APP_USB_MSC_SUPPORT
+#define F_APP_USB_MSC_SUPPORT                           0
+#undef F_APP_USB_HID_SUPPORT
+#define F_APP_USB_HID_SUPPORT                           0
+#endif
+
+#if (F_APP_USER_EQ_SUPPORT == 1)
+#undef F_APP_AUDIO_VOICE_SPK_EQ_INDEPENDENT_CFG
+#define F_APP_AUDIO_VOICE_SPK_EQ_INDEPENDENT_CFG    1
+#undef F_APP_AUDIO_VOICE_SPK_EQ_COMPENSATION_CFG
+#define F_APP_AUDIO_VOICE_SPK_EQ_COMPENSATION_CFG   0 // do not support EQ compensation
+#endif
+
+#if F_APP_USB_CDC_SUPPORT
+#undef IAD_SUPPORT
+#define IAD_SUPPORT                         1
+#endif
+
+#endif
+
+
+

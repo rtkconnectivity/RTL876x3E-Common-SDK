@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../Lite3D"
+		},
+		{
+			"path": "../h264bsd"
+		},
+		{
+			"path": "../nanovg"
+		},
+		{
+			"path": "../Arm2D"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stdio.h": "c",
+			"unistd.h": "c",
+			"*.txt": "c"
+		}
+	}
+}

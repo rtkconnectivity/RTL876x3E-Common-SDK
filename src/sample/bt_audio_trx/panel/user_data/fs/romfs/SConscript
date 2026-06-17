@@ -1,0 +1,19 @@
+#Import('rt_config')
+from building import *
+
+cwd = GetCurrentDir()
+
+# add the general drivers.
+src = Split("""
+""")
+
+src += ['romfs.c']
+
+CPPPATH = [cwd]
+
+
+
+
+group = DefineGroup('fs', src, depend = [], CPPPATH = CPPPATH)
+
+Return('group')

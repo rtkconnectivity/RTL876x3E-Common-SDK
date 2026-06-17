@@ -1,0 +1,23 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+mainmenu "realtek audiotrx mainmenu"
+
+menu "audiotrx"
+
+config REALTEK_APP_BT_AUDIO_TRI_DONGLE
+   bool "BT_AUDIO_TRI_DONGLE"
+   default n
+   help
+     BT Audio Tri-Dongle
+	 
+rsource "../../../src/Kconfig"
+endmenu
+
+config REALTEK_APP_BT_AUDIO_TRX
+   bool 
+   default y
+
+rsource "../../../Kconfig"

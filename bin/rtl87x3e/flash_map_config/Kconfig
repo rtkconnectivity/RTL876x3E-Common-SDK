@@ -1,0 +1,132 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+if SOC_SERIES_RTL8763E
+
+choice REALTEK_FLASH_MAP
+  prompt "flash map"
+  default REALTEK_FLASH_MAP_4M
+  help
+    specify flash map header file directory
+
+config REALTEK_FLASH_MAP_2M
+   bool "2M flash map"
+   help
+     flash_2M
+
+if REALTEK_FLASH_MAP_2M
+config REALTEK_FLASH_MAP_PATH
+   string
+   default  "./bin/rtl87x3e/flash_map_config/2M/flash_2M"
+endif
+
+config REALTEK_FLASH_MAP_DURIAN_2M
+   bool "2M durian flash map"
+   help
+     flash_durian_2M
+
+if REALTEK_FLASH_MAP_DURIAN_2M
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/2M/flash_durian_2M"
+endif
+
+config REALTEK_FLASH_MAP_4M
+   bool "4M flash map"
+   help
+     flash_4M
+
+if REALTEK_FLASH_MAP_4M
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/4M/flash_4M"
+endif
+
+config REALTEK_FLASH_MAP_4M_GAMING
+   bool "4M gaming flash map"
+   help
+     flash_4M_gaming
+
+if REALTEK_FLASH_MAP_4M_GAMING
+
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/4M/flash_4M_gaming"
+endif
+ 
+config REALTEK_FLASH_MAP_4M_SINGLE
+   bool "4M single flash map"
+   help
+     flash_4M_single
+
+if REALTEK_FLASH_MAP_4M_SINGLE
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/4M_single"
+endif
+
+config REALTEK_FLASH_MAP_4M_GCC
+   bool "4M GCC flash map"
+   help
+     flash_4M_gcc
+
+if REALTEK_FLASH_MAP_4M_GCC
+
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/4M/flash_4M"
+endif
+
+config REALTEK_FLASH_MAP_16M
+   bool "16M flash map"
+   help
+     flash_16M
+
+if REALTEK_FLASH_MAP_16M
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/16M/flash_16M"
+endif
+
+config REALTEK_FLASH_MAP_32M_WATCH
+   bool "32M watch flash map"
+   help
+     flash_32M_watch
+
+if REALTEK_FLASH_MAP_32M_WATCH
+
+config REALTEK_FLASH_MAP_PATH
+   string
+   default "./bin/rtl87x3e/flash_map_config/watch_flash_32M"
+endif
+
+config REALTEK_FLASH_MAP_CUSTOMIZED
+   bool "customized flash map"
+   help
+     customized flash map directory
+
+if REALTEK_FLASH_MAP_CUSTOMIZED
+config REALTEK_FLASH_MAP_PATH
+   string "customized flash map header file path"
+   help
+     set customized flash map header file directory
+endif
+
+endchoice
+
+
+choice REALTEK_COMPILE_BANK
+   prompt "bank type"
+   default REALTEK_COMPILE_BANK0
+
+config REALTEK_COMPILE_BANK0
+   bool "bank 0"
+
+config REALTEK_COMPILE_BANK1
+   bool "bank 1"
+
+endchoice
+
+endif

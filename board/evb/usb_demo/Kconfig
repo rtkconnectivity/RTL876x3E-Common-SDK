@@ -1,0 +1,28 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+mainmenu "realtek usbDemo mainmenu"
+
+menu "usbDemo"
+rsource "../../../src/Kconfig"
+endmenu
+
+config REALTEK_USB_AUDIO_APP
+   bool "USB Audio"
+   default n
+   
+config REALTEK_USB_AUDIO_ENABLE
+   bool "Enable USB Audio"
+   depends on REALTEK_USB_AUDIO_APP
+
+config REALTEK_USB_HID_APP
+   bool "USB HID"
+   default n
+   
+config REALTEK_USB_HID_ENABLE
+   bool "Enable HID Audio"
+   depends on REALTEK_USB_HID_APP
+
+rsource "../../../Kconfig"

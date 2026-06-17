@@ -1,0 +1,17 @@
+#
+# Copyright (c) 2026, Realtek Semiconductor Corporation
+#
+# SPDX-License-Identifier: LicenseRef-Realtek-5-Clause
+#
+
+mainmenu "realtek spp demo mainmenu"
+
+menu "spp demo"
+rsource "../../../src/Kconfig"
+endmenu
+
+config REALTEK_BT_SPP_DEMO_APP
+   bool 
+   default y
+
+rsource "../../../Kconfig"
